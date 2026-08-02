@@ -12,7 +12,7 @@ Status legend:
 ## Current Priorities
 
 - [x] Create repo, MVP spec, and initial project scaffold
-- [-] Turn the add-item experience into a real step-by-step mobile flow
+- [x] Turn the add-item experience into a real step-by-step mobile flow
 - [ ] Add edit item details and correction flow
 - [ ] Add JSON export/import backup
 - [ ] Tighten offline/PWA behavior and install UX
@@ -39,15 +39,15 @@ Status legend:
 
 ## Guided Add Flow
 
-- [ ] Replace single-panel form with true step flow
-- [ ] Step 1: category selection screen
-- [ ] Step 2: cut/part selection filtered by category
-- [ ] Step 3: quantity type selection
-- [ ] Step 4: quantity value + unit entry
-- [ ] Step 5: optional searchable note
-- [ ] Add progress indicator and back navigation
-- [ ] Add save success state with `Add same again`
-- [ ] Improve one-handed mobile ergonomics for each step
+- [x] Replace single-panel form with true step flow
+- [x] Step 1: category selection screen
+- [x] Step 2: cut/part selection filtered by category
+- [x] Step 3: quantity type selection
+- [x] Step 4: quantity value + unit entry
+- [x] Step 5: optional searchable note
+- [x] Add progress indicator and back navigation
+- [x] Add save success state with `Add same again`
+- [x] Improve one-handed mobile ergonomics for each step
 
 ## Inventory and Search
 

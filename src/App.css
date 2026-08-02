@@ -11,7 +11,10 @@
 .summary-card,
 .quick-add-card,
 .inventory-card,
-.empty-state {
+.empty-state,
+.option-card,
+.step-preview,
+.review-card {
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
 }
@@ -33,11 +36,12 @@
 
 .hero-actions,
 .panel-heading,
-.field-row,
 .panel-actions,
 .inventory-main,
 .card-actions,
-.search-row {
+.search-row,
+.progress-steps,
+.pill-row {
   display: flex;
   gap: 0.75rem;
 }
@@ -45,19 +49,22 @@
 .hero-actions,
 .panel-actions,
 .card-actions,
-.search-row {
+.search-row,
+.pill-row {
   align-items: center;
 }
 
 .hero-actions,
 .panel-heading,
-.inventory-main {
+.inventory-main,
+.card-actions {
   justify-content: space-between;
 }
 
 .eyebrow,
 .card-kicker,
-.section-label {
+.section-label,
+.step-meta {
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -69,7 +76,11 @@
 .hero-copy,
 .panel-copy,
 .meta-line,
-.note-line {
+.note-line,
+.step-header p,
+.success-shell p,
+.step-preview p,
+.review-card p {
   margin: 0;
   color: var(--muted);
 }
@@ -105,15 +116,107 @@
   padding: 1.25rem;
 }
 
-.add-panel {
+.add-flow-panel,
+.step-shell,
+.step-content,
+.step-header,
+.quantity-panel,
+.success-shell {
   display: grid;
   gap: 1rem;
+}
+
+.add-flow-header {
+  align-items: start;
+}
+
+.progress-wrap {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.progress-track {
+  position: relative;
+  height: 0.6rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(18, 50, 68, 0.1);
+}
+
+.progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #123244, #58a2b6);
+}
+
+.progress-dot {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 999px;
+  background: rgba(18, 50, 68, 0.12);
+}
+
+.progress-dot.active {
+  background: var(--accent);
+}
+
+.step-header h3,
+.success-shell h3 {
+  font-size: clamp(1.4rem, 4vw, 1.9rem);
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.option-grid.compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.option-card {
+  border-radius: 1.35rem;
+  padding: 1.05rem;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  display: grid;
+  gap: 0.35rem;
+  min-height: 7.75rem;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+.option-card:hover {
+  transform: translateY(-2px);
+}
+
+.option-card.active {
+  border-color: rgba(23, 77, 99, 0.5);
+  background: linear-gradient(180deg, rgba(226, 242, 246, 0.98), rgba(247, 251, 252, 0.96));
+}
+
+.option-card strong,
+.quick-add-card strong,
+.step-preview strong,
+.review-card strong {
+  color: var(--text-strong);
+}
+
+.option-card span,
+.quick-add-card span,
+.step-preview span,
+.review-card span {
+  color: var(--muted);
 }
 
 .field-group {
   display: grid;
   gap: 0.45rem;
-  flex: 1 1 0;
 }
 
 .field-group label {
@@ -122,26 +225,53 @@
   color: var(--text-strong);
 }
 
-.field-row {
-  flex-wrap: wrap;
-}
-
 .field-group input,
-.field-group select,
 .search-input {
   width: 100%;
   border-radius: 1rem;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.9);
-  padding: 0.95rem 1rem;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 1rem 1.05rem;
   color: var(--text-strong);
 }
 
 .field-group input:focus,
-.field-group select:focus,
 .search-input:focus {
   outline: 2px solid rgba(18, 50, 68, 0.2);
   border-color: var(--accent);
+}
+
+.quantity-panel {
+  grid-template-columns: 1.2fr 1fr;
+  align-items: end;
+}
+
+.pill-chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-strong);
+  font: inherit;
+  cursor: pointer;
+}
+
+.pill-chip.active,
+.pill-chip.static {
+  background: rgba(18, 50, 68, 0.1);
+  border-color: rgba(23, 77, 99, 0.25);
+}
+
+.step-preview,
+.review-card,
+.success-shell {
+  border-radius: 1.35rem;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 1rem;
+}
+
+.review-card {
+  gap: 0.45rem;
 }
 
 .primary-button,
@@ -177,6 +307,12 @@
   color: #f4fbfd;
 }
 
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
 .secondary-button {
   background: rgba(18, 50, 68, 0.08);
   color: var(--text-strong);
@@ -207,6 +343,19 @@
   background: var(--accent);
 }
 
+.success-shell {
+  text-align: center;
+}
+
+.success-badge {
+  justify-self: center;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(54, 129, 114, 0.15);
+  color: #1d6458;
+  font-weight: 700;
+}
+
 .quick-add-section {
   display: grid;
   gap: 0.75rem;
@@ -230,10 +379,6 @@
   padding: 1rem;
   display: grid;
   gap: 0.4rem;
-}
-
-.quick-add-card span {
-  color: var(--muted);
 }
 
 .inventory-list {
@@ -278,13 +423,16 @@
   color: #1d6458;
 }
 
-.card-actions {
-  justify-content: space-between;
-  margin-top: 1rem;
-}
-
 .empty-state {
   text-align: center;
+}
+
+@media (max-width: 900px) {
+  .option-grid,
+  .option-grid.compact,
+  .quantity-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
@@ -292,15 +440,23 @@
     padding-inline: 0.75rem;
   }
 
-  .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .summary-grid,
+  .option-grid,
+  .option-grid.compact,
+  .quantity-panel {
+    grid-template-columns: 1fr;
   }
 
   .hero-actions,
   .panel-heading,
   .inventory-main,
-  .card-actions {
+  .card-actions,
+  .panel-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .option-card {
+    min-height: 6.5rem;
   }
 }
