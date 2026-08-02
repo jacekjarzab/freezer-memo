@@ -1,6 +1,15 @@
-import { useDeferredValue, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import {
+  useDeferredValue,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
+import { registerSW } from 'virtual:pwa-register'
 import './App.css'
 import {
   CATEGORY_KEYS,
@@ -19,6 +28,11 @@ type AddStep = 'category' | 'cut' | 'quantityType' | 'quantityValue' | 'notes'
 type AddScreen = AddStep | 'done'
 type SortOption = 'newest' | 'oldest' | 'category'
 type InventoryMode = 'current' | 'history'
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
+}
 
 interface AddDraft {
   categoryKey: CategoryKey
@@ -85,6 +99,15 @@ function App() {
   const [backupNoticeTone, setBackupNoticeTone] = useState<'success' | 'error'>(
     'success',
   )
+  const [deferredInstallPrompt, setDeferredInstallPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null)
+  const [installNotice, setInstallNotice] = useState<string | null>(null)
+  const [isOfflineReady, setIsOfflineReady] = useState(false)
+  const [updateAvailable, setUpdateAvailable] = useState(false)
+  const [serviceWorkerUpdater, setServiceWorkerUpdater] = useState<
+    (() => Promise<void>) | null
+  >(null)
+  const [isStandalone, setIsStandalone] = useState(false)
   const deferredSearch = useDeferredValue(search)
 
   const items = useLiveQuery(
@@ -196,6 +219,57 @@ function App() {
     editingItemId === null
       ? null
       : (items ?? []).find((item) => item.id === editingItemId) ?? null
+
+  const updateStandaloneState = useEffectEvent(() => {
+    const matchesDisplayMode = window.matchMedia(
+      '(display-mode: standalone)',
+    ).matches
+    const isIosStandalone =
+      typeof navigator !== 'undefined' &&
+      'standalone' in navigator &&
+      Boolean((navigator as Navigator & { standalone?: boolean }).standalone)
+
+    setIsStandalone(matchesDisplayMode || isIosStandalone)
+  })
+
+  useEffect(() => {
+    const updateServiceWorker = registerSW({
+      immediate: true,
+      onOfflineReady() {
+        setIsOfflineReady(true)
+      },
+      onNeedRefresh() {
+        setUpdateAvailable(true)
+        setServiceWorkerUpdater(() => updateServiceWorker)
+      },
+    })
+
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault()
+      setDeferredInstallPrompt(event as BeforeInstallPromptEvent)
+      setInstallNotice(null)
+    }
+
+    const handleAppInstalled = () => {
+      setDeferredInstallPrompt(null)
+      setInstallNotice('installed')
+      updateStandaloneState()
+    }
+
+    updateStandaloneState()
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleAppInstalled)
+    window.addEventListener('resize', updateStandaloneState)
+
+    return () => {
+      window.removeEventListener(
+        'beforeinstallprompt',
+        handleBeforeInstallPrompt,
+      )
+      window.removeEventListener('appinstalled', handleAppInstalled)
+      window.removeEventListener('resize', updateStandaloneState)
+    }
+  }, [])
 
   function openAddFlow(prefill?: Partial<AddDraft>, step: AddScreen = 'category') {
     setDraft({
@@ -469,8 +543,81 @@ function App() {
     }
   }
 
+  async function handleInstallApp() {
+    if (!deferredInstallPrompt) {
+      return
+    }
+
+    await deferredInstallPrompt.prompt()
+    const { outcome } = await deferredInstallPrompt.userChoice
+
+    if (outcome === 'accepted') {
+      setInstallNotice('installed')
+    }
+
+    setDeferredInstallPrompt(null)
+  }
+
+  async function handleRefreshApp() {
+    if (!serviceWorkerUpdater) {
+      return
+    }
+
+    await serviceWorkerUpdater()
+  }
+
   return (
     <main className="app-shell">
+      {isOfflineReady || updateAvailable || deferredInstallPrompt || isStandalone ? (
+        <section className="panel pwa-panel">
+          <div className="panel-heading pwa-panel-header">
+            <div>
+              <p className="eyebrow">{t('pwa.eyebrow')}</p>
+              <h2>{t('pwa.title')}</h2>
+            </div>
+            <p className="panel-copy">
+              {updateAvailable
+                ? t('pwa.updateAvailable')
+                : isStandalone
+                  ? t('pwa.installedState')
+                  : isOfflineReady
+                    ? t('pwa.offlineReady')
+                    : t('pwa.installHint')}
+            </p>
+          </div>
+
+          <div className="pwa-actions">
+            {deferredInstallPrompt && !isStandalone ? (
+              <button
+                className="primary-button"
+                type="button"
+                onClick={() => void handleInstallApp()}
+              >
+                {t('pwa.installButton')}
+              </button>
+            ) : null}
+
+            {updateAvailable ? (
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => void handleRefreshApp()}
+              >
+                {t('pwa.refreshButton')}
+              </button>
+            ) : null}
+
+            {isOfflineReady ? (
+              <span className="pwa-state-pill">{t('pwa.cachedBadge')}</span>
+            ) : null}
+          </div>
+
+          {installNotice === 'installed' ? (
+            <p className="backup-notice success">{t('pwa.installSuccess')}</p>
+          ) : null}
+        </section>
+      ) : null}
+
       <section className="hero-panel">
         <div>
           <p className="eyebrow">{t('hero.eyebrow')}</p>

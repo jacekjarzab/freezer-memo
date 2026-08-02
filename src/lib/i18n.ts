@@ -37,6 +37,18 @@ const resources = {
       settings: {
         language: 'Language',
       },
+      pwa: {
+        eyebrow: 'PWA status',
+        title: 'Keep the app ready on your phone',
+        installHint: 'Install it to your home screen for faster access and a more native feel.',
+        offlineReady: 'Offline cache is ready. The app shell should work without network now.',
+        installedState: 'Installed mode is active on this device.',
+        updateAvailable: 'A newer version is ready. Refresh to load the latest app shell.',
+        installButton: 'Install app',
+        refreshButton: 'Refresh app',
+        cachedBadge: 'Offline ready',
+        installSuccess: 'App installed successfully on this device.',
+      },
       backup: {
         eyebrow: 'Backup and restore',
         title: 'Keep a JSON copy of your freezer data',
@@ -293,6 +305,18 @@ const resources = {
       },
       settings: {
         language: 'Język',
+      },
+      pwa: {
+        eyebrow: 'Status PWA',
+        title: 'Miej apkę gotową na telefonie',
+        installHint: 'Dodaj ją do ekranu głównego, żeby odpalała się szybciej i bardziej jak natywna apka.',
+        offlineReady: 'Cache offline jest gotowy. Shell aplikacji powinien już działać bez sieci.',
+        installedState: 'Tryb zainstalowanej aplikacji jest aktywny na tym urządzeniu.',
+        updateAvailable: 'Czeka nowsza wersja. Odśwież, żeby wczytać aktualny shell aplikacji.',
+        installButton: 'Zainstaluj apkę',
+        refreshButton: 'Odśwież apkę',
+        cachedBadge: 'Offline gotowe',
+        installSuccess: 'Aplikacja została zainstalowana na tym urządzeniu.',
       },
       backup: {
         eyebrow: 'Backup i przywracanie',

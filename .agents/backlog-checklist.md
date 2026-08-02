@@ -15,7 +15,7 @@ Status legend:
 - [x] Turn the add-item experience into a real step-by-step mobile flow
 - [x] Add edit item details and correction flow
 - [x] Add JSON export/import backup
-- [ ] Tighten offline/PWA behavior and install UX
+- [x] Tighten offline/PWA behavior and install UX
 - [ ] Prepare MVP for real-device testing
 
 ## Product Decisions
@@ -86,10 +86,10 @@ Status legend:
 - [x] Register service worker
 - [x] Generate manifest
 - [x] Build offline-capable shell
-- [ ] Add explicit offline-ready / installed feedback
+- [x] Add explicit offline-ready / installed feedback
 - [ ] Test offline create/search/take-out on mobile
 - [ ] Verify cold-start behavior after first install
-- [ ] Add install prompt UX where supported
+- [x] Add install prompt UX where supported
 
 ## UX Polish
 
