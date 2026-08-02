@@ -53,6 +53,7 @@ const addSteps: AddStep[] = [
 
 const quantityTypes: QuantityType[] = ['weight', 'packs', 'pieces']
 const weightUnits = ['g', 'kg'] as const
+const appVersion = 'v1.0'
 
 function createInitialDraft(): AddDraft {
   return {
@@ -99,6 +100,8 @@ function App() {
   const [backupNoticeTone, setBackupNoticeTone] = useState<'success' | 'error'>(
     'success',
   )
+  const [isBackupOpen, setIsBackupOpen] = useState(false)
+  const [isPwaOpen, setIsPwaOpen] = useState(false)
   const [deferredInstallPrompt, setDeferredInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null)
   const [installNotice, setInstallNotice] = useState<string | null>(null)
@@ -269,6 +272,32 @@ function App() {
       window.removeEventListener('appinstalled', handleAppInstalled)
       window.removeEventListener('resize', updateStandaloneState)
     }
+  }, [])
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 720px)')
+
+    const syncBackupState = () => {
+      setIsBackupOpen(!media.matches)
+    }
+
+    syncBackupState()
+    media.addEventListener('change', syncBackupState)
+
+    return () => media.removeEventListener('change', syncBackupState)
+  }, [])
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 720px)')
+
+    const syncPwaState = () => {
+      setIsPwaOpen(!media.matches)
+    }
+
+    syncPwaState()
+    media.addEventListener('change', syncPwaState)
+
+    return () => media.removeEventListener('change', syncPwaState)
   }, [])
 
   function openAddFlow(prefill?: Partial<AddDraft>, step: AddScreen = 'category') {
@@ -571,11 +600,21 @@ function App() {
       {isOfflineReady || updateAvailable || deferredInstallPrompt || isStandalone ? (
         <section className="panel pwa-panel">
           <div className="panel-heading pwa-panel-header">
-            <div>
-              <p className="eyebrow">{t('pwa.eyebrow')}</p>
-              <h2>{t('pwa.title')}</h2>
-            </div>
-            <p className="panel-copy">
+            <button
+              className="pwa-toggle"
+              type="button"
+              aria-expanded={isPwaOpen}
+              onClick={() => setIsPwaOpen((current) => !current)}
+            >
+              <span>
+                <p className="eyebrow">{t('pwa.eyebrow')}</p>
+                <h2>{t('pwa.title')}</h2>
+              </span>
+              <span className="pwa-toggle-icon" aria-hidden="true">
+                {isPwaOpen ? '−' : '+'}
+              </span>
+            </button>
+            <p className="panel-copy pwa-subtitle">
               {updateAvailable
                 ? t('pwa.updateAvailable')
                 : isStandalone
@@ -586,80 +625,77 @@ function App() {
             </p>
           </div>
 
-          <div className="pwa-actions">
-            {deferredInstallPrompt && !isStandalone ? (
-              <button
-                className="primary-button"
-                type="button"
-                onClick={() => void handleInstallApp()}
-              >
-                {t('pwa.installButton')}
-              </button>
-            ) : null}
+          {isPwaOpen ? (
+            <>
+              <div className="pwa-actions">
+                {deferredInstallPrompt && !isStandalone ? (
+                  <button
+                    className="primary-button"
+                    type="button"
+                    onClick={() => void handleInstallApp()}
+                  >
+                    {t('pwa.installButton')}
+                  </button>
+                ) : null}
 
-            {updateAvailable ? (
-              <button
-                className="secondary-button"
-                type="button"
-                onClick={() => void handleRefreshApp()}
-              >
-                {t('pwa.refreshButton')}
-              </button>
-            ) : null}
+                {updateAvailable ? (
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    onClick={() => void handleRefreshApp()}
+                  >
+                    {t('pwa.refreshButton')}
+                  </button>
+                ) : null}
 
-            {isOfflineReady ? (
-              <span className="pwa-state-pill">{t('pwa.cachedBadge')}</span>
-            ) : null}
-          </div>
+                {isOfflineReady ? (
+                  <span className="pwa-state-pill">{t('pwa.cachedBadge')}</span>
+                ) : null}
+              </div>
 
-          {installNotice === 'installed' ? (
-            <p className="backup-notice success">{t('pwa.installSuccess')}</p>
+              {installNotice === 'installed' ? (
+                <p className="backup-notice success">{t('pwa.installSuccess')}</p>
+              ) : null}
+            </>
           ) : null}
         </section>
       ) : null}
 
-      <section className="hero-panel">
-        <div>
-          <p className="eyebrow">{t('hero.eyebrow')}</p>
-          <h1>{t('hero.title')}</h1>
-          <p className="hero-copy">{t('hero.subtitle')}</p>
-        </div>
+      <header className="app-header panel" aria-label="Freezer Memo">
+        <div className="app-brand">
+          <span className="app-icon" aria-hidden="true">
+            FM
+          </span>
 
-        <div className="hero-actions">
-          <button
-            className="primary-button"
-            type="button"
-            onClick={() => (showAddPanel ? closeAddFlow() : openAddFlow())}
-          >
-            {showAddPanel ? t('actions.close') : t('actions.addItem')}
-          </button>
-
-          <div className="language-switcher" aria-label={t('settings.language')}>
-            <button
-              className={
-                i18n.language === 'en'
-                  ? 'language-chip active'
-                  : 'language-chip'
-              }
-              type="button"
-              onClick={() => updateLanguage('en')}
-            >
-              EN
-            </button>
-            <button
-              className={
-                i18n.language === 'pl'
-                  ? 'language-chip active'
-                  : 'language-chip'
-              }
-              type="button"
-              onClick={() => updateLanguage('pl')}
-            >
-              PL
-            </button>
+          <div className="app-brand-copy">
+            <div className="app-brand-line">
+              <h1 className="app-name">Freezer Memo</h1>
+              <span className="app-version">{appVersion}</span>
+            </div>
           </div>
         </div>
-      </section>
+
+        <div className="language-switcher" aria-label={t('settings.language')}>
+          <button
+            className={
+              i18n.language === 'en' ? 'language-chip active' : 'language-chip'
+            }
+            type="button"
+            onClick={() => updateLanguage('en')}
+          >
+            EN
+          </button>
+          <button
+            className={
+              i18n.language === 'pl' ? 'language-chip active' : 'language-chip'
+            }
+            type="button"
+            onClick={() => updateLanguage('pl')}
+          >
+            PL
+          </button>
+        </div>
+      </header>
 
       <section className="summary-grid" aria-label={t('summary.title')}>
         <article className="summary-card emphasis">
@@ -932,6 +968,17 @@ function App() {
           )}
         </section>
       ) : null}
+
+      <button
+        className="fab-button"
+        type="button"
+        onClick={() => openAddFlow()}
+      >
+        <span className="fab-icon" aria-hidden="true">
+          +
+        </span>
+        <span>{t('actions.addItem')}</span>
+      </button>
 
       <section className="panel">
         <div className="panel-heading">
@@ -1278,53 +1325,67 @@ function App() {
       ) : null}
 
       <section className="panel backup-panel">
-        <div className="panel-heading">
-          <div>
-            <p className="eyebrow">{t('backup.eyebrow')}</p>
-            <h2>{t('backup.title')}</h2>
-          </div>
-          <p className="panel-copy">{t('backup.subtitle')}</p>
+        <div className="panel-heading backup-header">
+          <button
+            className="backup-toggle"
+            type="button"
+            aria-expanded={isBackupOpen}
+            onClick={() => setIsBackupOpen((current) => !current)}
+          >
+            <span>
+              <p className="eyebrow">{t('backup.eyebrow')}</p>
+              <h2>{t('backup.title')}</h2>
+            </span>
+            <span className="backup-toggle-icon" aria-hidden="true">
+              {isBackupOpen ? '−' : '+'}
+            </span>
+          </button>
+          <p className="panel-copy backup-subtitle">{t('backup.subtitle')}</p>
         </div>
 
-        <div className="backup-actions">
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={() => void handleExportBackup()}
-          >
-            {t('backup.exportButton')}
-          </button>
-          <button
-            className="primary-button"
-            type="button"
-            onClick={handleImportButtonClick}
-          >
-            {t('backup.importButton')}
-          </button>
-          <input
-            ref={importInputRef}
-            accept="application/json"
-            className="visually-hidden"
-            type="file"
-            onChange={(event) => void handleImportFile(event)}
-          />
-        </div>
+        {isBackupOpen ? (
+          <>
+            <div className="backup-actions">
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => void handleExportBackup()}
+              >
+                {t('backup.exportButton')}
+              </button>
+              <button
+                className="primary-button"
+                type="button"
+                onClick={handleImportButtonClick}
+              >
+                {t('backup.importButton')}
+              </button>
+              <input
+                ref={importInputRef}
+                accept="application/json"
+                className="visually-hidden"
+                type="file"
+                onChange={(event) => void handleImportFile(event)}
+              />
+            </div>
 
-        <article className="backup-card">
-          <strong>{t('backup.replaceTitle')}</strong>
-          <p>{t('backup.replaceCopy')}</p>
-        </article>
+            <article className="backup-card">
+              <strong>{t('backup.replaceTitle')}</strong>
+              <p>{t('backup.replaceCopy')}</p>
+            </article>
 
-        {backupNotice ? (
-          <p
-            className={
-              backupNoticeTone === 'success'
-                ? 'backup-notice success'
-                : 'backup-notice error'
-            }
-          >
-            {backupNotice}
-          </p>
+            {backupNotice ? (
+              <p
+                className={
+                  backupNoticeTone === 'success'
+                    ? 'backup-notice success'
+                    : 'backup-notice error'
+                }
+              >
+                {backupNotice}
+              </p>
+            ) : null}
+          </>
         ) : null}
       </section>
     </main>

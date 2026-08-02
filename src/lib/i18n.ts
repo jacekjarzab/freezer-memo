@@ -53,7 +53,7 @@ const resources = {
         eyebrow: 'Backup and restore',
         title: 'Keep a JSON copy of your freezer data',
         subtitle: 'Export everything locally or restore from a backup file.',
-        exportButton: 'Export JSON backup',
+        exportButton: 'Export backup',
         importButton: 'Import backup',
         replaceTitle: 'Import replaces the local inventory',
         replaceCopy:
