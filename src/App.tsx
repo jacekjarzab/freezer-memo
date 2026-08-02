@@ -17,6 +17,7 @@ import { formatFrozenDate, formatQuantity } from './lib/format'
 
 type AddStep = 'category' | 'cut' | 'quantityType' | 'quantityValue' | 'notes'
 type AddScreen = AddStep | 'done'
+type SortOption = 'newest' | 'oldest' | 'category'
 
 interface AddDraft {
   categoryKey: CategoryKey
@@ -65,6 +66,10 @@ function App() {
   const importInputRef = useRef<HTMLInputElement | null>(null)
   const [search, setSearch] = useState('')
   const [showTakenOut, setShowTakenOut] = useState(false)
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState<
+    CategoryKey | 'all'
+  >('all')
+  const [sortOption, setSortOption] = useState<SortOption>('newest')
   const [showAddPanel, setShowAddPanel] = useState(false)
   const [addScreen, setAddScreen] = useState<AddScreen>('category')
   const [draft, setDraft] = useState<AddDraft>(createInitialDraft())
@@ -113,21 +118,50 @@ function App() {
   const filteredItems = useMemo(() => {
     const query = deferredSearch.trim().toLowerCase()
 
-    return (items ?? []).filter((item) => {
-      if (!showTakenOut && item.status === 'taken_out') {
-        return false
-      }
+    return (items ?? [])
+      .filter((item) => {
+        if (!showTakenOut && item.status === 'taken_out') {
+          return false
+        }
 
-      const categoryLabel = t(`catalog.categories.${item.categoryKey}`)
-      const cutLabel = t(`catalog.cuts.${item.categoryKey}.${item.cutKey}`)
-      const quantityLabel = formatQuantity(item, t)
-      const haystack = [categoryLabel, cutLabel, quantityLabel, item.notes]
-        .join(' ')
-        .toLowerCase()
+        if (
+          activeCategoryFilter !== 'all' &&
+          item.categoryKey !== activeCategoryFilter
+        ) {
+          return false
+        }
 
-      return !query || haystack.includes(query)
-    })
-  }, [deferredSearch, items, showTakenOut, t])
+        const categoryLabel = t(`catalog.categories.${item.categoryKey}`)
+        const cutLabel = t(`catalog.cuts.${item.categoryKey}.${item.cutKey}`)
+        const quantityLabel = formatQuantity(item, t)
+        const haystack = [categoryLabel, cutLabel, quantityLabel, item.notes]
+          .join(' ')
+          .toLowerCase()
+
+        return !query || haystack.includes(query)
+      })
+      .sort((left, right) => {
+        if (sortOption === 'oldest') {
+          return left.createdAt.localeCompare(right.createdAt)
+        }
+
+        if (sortOption === 'category') {
+          const categoryCompare = t(
+            `catalog.categories.${left.categoryKey}`,
+          ).localeCompare(t(`catalog.categories.${right.categoryKey}`))
+
+          if (categoryCompare !== 0) {
+            return categoryCompare
+          }
+
+          return t(`catalog.cuts.${left.categoryKey}.${left.cutKey}`).localeCompare(
+            t(`catalog.cuts.${right.categoryKey}.${right.cutKey}`),
+          )
+        }
+
+        return right.createdAt.localeCompare(left.createdAt)
+      })
+  }, [activeCategoryFilter, deferredSearch, items, showTakenOut, sortOption, t])
 
   const activeCount =
     items?.filter((item) => item.status === 'in_freezer').length ?? 0
@@ -770,6 +804,49 @@ function App() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
+        </div>
+
+        <div className="inventory-controls">
+          <div className="filter-chip-row" aria-label={t('filters.category')}>
+            <button
+              className={
+                activeCategoryFilter === 'all'
+                  ? 'filter-chip active'
+                  : 'filter-chip'
+              }
+              type="button"
+              onClick={() => setActiveCategoryFilter('all')}
+            >
+              {t('filters.allCategories')}
+            </button>
+            {CATEGORY_KEYS.map((key) => (
+              <button
+                className={
+                  activeCategoryFilter === key
+                    ? 'filter-chip active'
+                    : 'filter-chip'
+                }
+                key={key}
+                type="button"
+                onClick={() => setActiveCategoryFilter(key)}
+              >
+                {t(`catalog.categories.${key}`)}
+              </button>
+            ))}
+          </div>
+
+          <div className="field-group sort-group">
+            <label htmlFor="sort-option">{t('filters.sortBy')}</label>
+            <select
+              id="sort-option"
+              value={sortOption}
+              onChange={(event) => setSortOption(event.target.value as SortOption)}
+            >
+              <option value="newest">{t('filters.sortOptions.newest')}</option>
+              <option value="oldest">{t('filters.sortOptions.oldest')}</option>
+              <option value="category">{t('filters.sortOptions.category')}</option>
+            </select>
+          </div>
         </div>
 
         {recentItems.length > 0 ? (

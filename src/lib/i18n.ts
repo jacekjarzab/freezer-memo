@@ -139,8 +139,16 @@ const resources = {
         title: 'Quick add again',
       },
       filters: {
+        allCategories: 'All categories',
+        category: 'Category filter',
         showTakenOut: 'Show history',
         hideTakenOut: 'Hide history',
+        sortBy: 'Sort by',
+        sortOptions: {
+          newest: 'Newest first',
+          oldest: 'Oldest first',
+          category: 'Category',
+        },
       },
       statuses: {
         in_freezer: 'In freezer',
@@ -384,8 +392,16 @@ const resources = {
         title: 'Dodaj ponownie',
       },
       filters: {
+        allCategories: 'Wszystkie kategorie',
+        category: 'Filtr kategorii',
         showTakenOut: 'Pokaż historię',
         hideTakenOut: 'Ukryj historię',
+        sortBy: 'Sortowanie',
+        sortOptions: {
+          newest: 'Najnowsze najpierw',
+          oldest: 'Najstarsze najpierw',
+          category: 'Kategoria',
+        },
       },
       statuses: {
         in_freezer: 'W zamrażarce',

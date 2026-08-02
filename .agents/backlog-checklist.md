@@ -55,8 +55,8 @@ Status legend:
 - [x] Add basic text search
 - [x] Add take-out / restore action
 - [x] Add recent item quick repeat
-- [ ] Add category filters
-- [ ] Add sorting controls
+- [x] Add category filters
+- [x] Add sorting controls
 - [ ] Add dedicated history view or clearer history mode
 - [x] Add item details / edit screen
 - [ ] Improve search matching across translated labels
