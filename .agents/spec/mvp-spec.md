@@ -9,6 +9,7 @@ The core product promise is simple:
 - adding food must be fast enough to use every time
 - inventory must be searchable in seconds
 - the app must work fully offline on mobile
+- the app must support English by default and Polish from day one
 
 ## Problem
 
@@ -24,6 +25,7 @@ Freezer contents are usually tracked mentally, in chat notes, or not at all. Tha
 - make finding an item possible in under 5 seconds
 - support installable mobile PWA usage with offline read and write
 - require zero account creation for MVP
+- ship with English as the default UI language and Polish as a fully supported secondary language
 
 ## Non-Goals For MVP
 
@@ -54,6 +56,7 @@ Freezer contents are usually tracked mentally, in chat notes, or not at all. Tha
 - guided input over blank forms
 - one primary action per screen
 - recent choices and presets reduce repetitive entry
+- language-ready copy and data labels from the first release
 
 ## Information Architecture
 
@@ -90,6 +93,8 @@ Initial category list:
 - chicken
 - beef
 - pork
+- lamb
+- wild boar
 - turkey
 - fish
 - duck
@@ -104,6 +109,8 @@ Examples:
 - chicken: breast, thigh, wings, drumsticks, whole, ground
 - beef: steak, antricot, ribs, roast, ground, other
 - pork: ribs, loin, shoulder, neck, bacon, sausage, other
+- lamb: chops, leg, shoulder, shank, ground, other
+- wild boar: loin, shoulder, sausage, stew meat, ground, other
 
 The catalog must be editable later, but hardcoded defaults are acceptable for MVP.
 
@@ -146,6 +153,8 @@ After saving:
 - chicken
 - beef
 - pork
+- lamb
+- wild boar
 - turkey
 - fish
 - duck
@@ -156,6 +165,8 @@ After saving:
 - chicken: breast, thigh, wings, drumsticks, whole, ground, other
 - beef: steak, antricot, ribs, roast, ground, burger, other
 - pork: ribs, loin, shoulder, neck, bacon, sausage, ground, other
+- lamb: chops, leg, shoulder, shank, ground, other
+- wild boar: loin, shoulder, sausage, stew meat, ground, other
 - turkey: breast, thigh, ground, whole, other
 - fish: fillet, steak, whole, smoked, other
 - duck: breast, legs, whole, other
@@ -215,6 +226,8 @@ Useful filters for MVP:
 - `status` (`in_freezer` | `taken_out`)
 - `category`
 - `cut`
+- `category_key`
+- `cut_key`
 - `quantity_type` (`weight` | `packs` | `pieces`)
 - `quantity_value`
 - `quantity_unit`
@@ -229,6 +242,8 @@ Useful filters for MVP:
 - `id`
 - `category`
 - `cut`
+- `category_key`
+- `cut_key`
 - `default_quantity_type`
 - `default_quantity_value`
 - `default_quantity_unit`
@@ -243,6 +258,7 @@ Useful filters for MVP:
 - `taken_out_at` is `null` until the item is removed
 - `updated_at` changes on create, edit, take out, and restore
 - preset `label` can be auto-generated from category, cut, and quantity
+- category and cut should be stored as stable internal keys with UI labels resolved through translations
 
 ## Core Flows
 
@@ -286,6 +302,16 @@ Useful filters for MVP:
 - add, edit, search, and take-out actions work fully offline
 - data stored locally in IndexedDB
 - no backend required for MVP
+- language switching works fully offline with bundled translations
+
+## Internationalization Requirements
+
+- English is the default UI language
+- Polish is available in MVP as a first-class secondary language
+- all user-visible UI copy must be translation-driven from day one
+- default category and cut labels must come from translation dictionaries, not hardcoded UI strings
+- user-created notes remain free text and are not auto-translated
+- search must match translated category and cut labels for the active UI language
 
 ## PWA Requirements
 
@@ -318,6 +344,7 @@ This keeps the app useful without building auth or sync too early.
 - JSON export and import
 - edit note after creation
 - view taken-out items through a history filter or dedicated view
+- language switcher for English and Polish
 
 ### Nice to Have if Time Allows
 
@@ -332,6 +359,7 @@ This keeps the app useful without building auth or sync too early.
 - at least 80 percent of entries can be created without typing notes
 - search results appear in under 100 ms on normal mobile datasets
 - app remains fully usable with no network connection
+- switching between English and Polish does not require reload or connectivity
 
 ## Risks
 
@@ -339,6 +367,7 @@ This keeps the app useful without building auth or sync too early.
 - forcing only weight-based quantity will not match real household behavior
 - over-grouping inventory may make removal and notes awkward
 - delayed PWA/offline setup can create architecture rework later
+- mixing translated labels with stored raw strings can make search and catalog maintenance messy
 
 ## Open Product Decisions
 
@@ -359,12 +388,19 @@ This keeps the app useful without building auth or sync too early.
 - search returns matching active items by category, cut, or note
 - list updates while typing without explicit submit
 - take-out action is available directly from the list
+- category and cut search work correctly in both English and Polish UI modes
 
 ### Offline and Storage
 
 - previously loaded app shell opens without internet
 - created items persist after app restart
 - exported JSON can be imported into a clean install and restore all items
+
+### Internationalization
+
+- user can switch between English and Polish from settings without network access
+- all default category and cut labels render correctly in both languages
+- existing saved items still display correctly after switching languages
 
 ## Recommended Build Order
 
