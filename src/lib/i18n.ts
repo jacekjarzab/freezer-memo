@@ -25,6 +25,28 @@ const resources = {
       settings: {
         language: 'Language',
       },
+      backup: {
+        eyebrow: 'Backup and restore',
+        title: 'Keep a JSON copy of your freezer data',
+        subtitle: 'Export everything locally or restore from a backup file.',
+        exportButton: 'Export JSON backup',
+        importButton: 'Import backup',
+        replaceTitle: 'Import replaces the local inventory',
+        replaceCopy:
+          'This restore clears the current device data first, then imports the backup file.',
+        importConfirm:
+          'Importing this backup will replace the current freezer data on this device. Continue?',
+        exportSuccess_one: 'Backup exported with {{count}} item.',
+        exportSuccess_other: 'Backup exported with {{count}} items.',
+        importSuccess_one: 'Backup restored with {{count}} item.',
+        importSuccess_other: 'Backup restored with {{count}} items.',
+        errors: {
+          invalid_json: 'That file is not valid JSON.',
+          invalid_shape: 'That backup file does not match the expected format.',
+          invalid_items: 'Some imported items are invalid, so the restore was stopped.',
+          generic: 'Import failed. Try another backup file.',
+        },
+      },
       summary: {
         title: 'Inventory summary',
         items: 'Items in freezer',
@@ -231,6 +253,32 @@ const resources = {
       },
       settings: {
         language: 'Język',
+      },
+      backup: {
+        eyebrow: 'Backup i przywracanie',
+        title: 'Trzymaj kopię JSON danych z zamrażarki',
+        subtitle: 'Wyeksportuj wszystko lokalnie albo przywróć dane z pliku backupu.',
+        exportButton: 'Eksportuj backup JSON',
+        importButton: 'Importuj backup',
+        replaceTitle: 'Import nadpisuje lokalny stan',
+        replaceCopy:
+          'Przywracanie najpierw czyści dane na tym urządzeniu, a potem wgrywa plik backupu.',
+        importConfirm:
+          'Import tego backupu zastąpi aktualne dane zamrażarki na tym urządzeniu. Kontynuować?',
+        exportSuccess_one: 'Wyeksportowano backup z {{count}} produktem.',
+        exportSuccess_few: 'Wyeksportowano backup z {{count}} produktami.',
+        exportSuccess_many: 'Wyeksportowano backup z {{count}} produktami.',
+        exportSuccess_other: 'Wyeksportowano backup z {{count}} produktami.',
+        importSuccess_one: 'Przywrócono backup z {{count}} produktem.',
+        importSuccess_few: 'Przywrócono backup z {{count}} produktami.',
+        importSuccess_many: 'Przywrócono backup z {{count}} produktami.',
+        importSuccess_other: 'Przywrócono backup z {{count}} produktami.',
+        errors: {
+          invalid_json: 'Ten plik nie jest poprawnym JSON-em.',
+          invalid_shape: 'Ten backup nie ma oczekiwanego formatu.',
+          invalid_items: 'Część pozycji w backupie jest niepoprawna, więc import został zatrzymany.',
+          generic: 'Import się wywalił. Spróbuj z innym plikiem backupu.',
+        },
       },
       summary: {
         title: 'Podsumowanie zapasów',

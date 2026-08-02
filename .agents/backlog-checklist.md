@@ -14,7 +14,7 @@ Status legend:
 - [x] Create repo, MVP spec, and initial project scaffold
 - [x] Turn the add-item experience into a real step-by-step mobile flow
 - [ ] Add edit item details and correction flow
-- [ ] Add JSON export/import backup
+- [x] Add JSON export/import backup
 - [ ] Tighten offline/PWA behavior and install UX
 - [ ] Prepare MVP for real-device testing
 
@@ -67,9 +67,9 @@ Status legend:
 - [x] Store category/cut as stable keys
 - [ ] Add schema support for presets/favorites
 - [ ] Add migration plan for future schema changes
-- [ ] Add backup export to JSON
-- [ ] Add restore from JSON
-- [ ] Validate import payload and handle bad files safely
+- [x] Add backup export to JSON
+- [x] Add restore from JSON
+- [x] Validate import payload and handle bad files safely
 
 ## Internationalization
 

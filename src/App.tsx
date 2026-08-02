@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import './App.css'
@@ -7,6 +7,11 @@ import {
   CUT_OPTIONS_BY_CATEGORY,
   type CategoryKey,
 } from './data/catalog'
+import {
+  createBackupPayload,
+  importBackupPayload,
+  parseBackupPayload,
+} from './lib/backup'
 import { db, type FreezerItemRecord, type QuantityType } from './lib/db'
 import { formatFrozenDate, formatQuantity } from './lib/format'
 
@@ -46,12 +51,17 @@ function createInitialDraft(): AddDraft {
 
 function App() {
   const { t, i18n } = useTranslation()
+  const importInputRef = useRef<HTMLInputElement | null>(null)
   const [search, setSearch] = useState('')
   const [showTakenOut, setShowTakenOut] = useState(false)
   const [showAddPanel, setShowAddPanel] = useState(false)
   const [addScreen, setAddScreen] = useState<AddScreen>('category')
   const [draft, setDraft] = useState<AddDraft>(createInitialDraft())
   const [lastSavedDraft, setLastSavedDraft] = useState<AddDraft | null>(null)
+  const [backupNotice, setBackupNotice] = useState<string | null>(null)
+  const [backupNoticeTone, setBackupNoticeTone] = useState<'success' | 'error'>(
+    'success',
+  )
   const deferredSearch = useDeferredValue(search)
 
   const items = useLiveQuery(
@@ -279,6 +289,70 @@ function App() {
     }
 
     openAddFlow(lastSavedDraft, 'quantityValue')
+  }
+
+  async function handleExportBackup() {
+    const payload = await createBackupPayload()
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: 'application/json',
+    })
+    const fileDate = new Date().toISOString().slice(0, 10)
+    const objectUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = objectUrl
+    link.download = `freezer-memo-backup-${fileDate}.json`
+    link.click()
+    URL.revokeObjectURL(objectUrl)
+
+    setBackupNoticeTone('success')
+    setBackupNotice(
+      t('backup.exportSuccess', {
+        count: payload.itemCount,
+      }),
+    )
+  }
+
+  function handleImportButtonClick() {
+    importInputRef.current?.click()
+  }
+
+  async function handleImportFile(event: ChangeEvent<HTMLInputElement>) {
+    const selectedFile = event.target.files?.[0]
+
+    if (!selectedFile) {
+      return
+    }
+
+    try {
+      const fileText = await selectedFile.text()
+      const payload = parseBackupPayload(fileText)
+      const shouldReplace = window.confirm(t('backup.importConfirm'))
+
+      if (!shouldReplace) {
+        return
+      }
+
+      const importedCount = await importBackupPayload(payload)
+
+      setBackupNoticeTone('success')
+      setBackupNotice(
+        t('backup.importSuccess', {
+          count: importedCount,
+        }),
+      )
+    } catch (error) {
+      const messageKey =
+        error instanceof Error &&
+        ['invalid_json', 'invalid_shape', 'invalid_items'].includes(error.message)
+          ? `backup.errors.${error.message}`
+          : 'backup.errors.generic'
+
+      setBackupNoticeTone('error')
+      setBackupNotice(t(messageKey))
+    } finally {
+      event.target.value = ''
+    }
   }
 
   return (
@@ -692,6 +766,57 @@ function App() {
             ))
           )}
         </div>
+      </section>
+
+      <section className="panel backup-panel">
+        <div className="panel-heading">
+          <div>
+            <p className="eyebrow">{t('backup.eyebrow')}</p>
+            <h2>{t('backup.title')}</h2>
+          </div>
+          <p className="panel-copy">{t('backup.subtitle')}</p>
+        </div>
+
+        <div className="backup-actions">
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => void handleExportBackup()}
+          >
+            {t('backup.exportButton')}
+          </button>
+          <button
+            className="primary-button"
+            type="button"
+            onClick={handleImportButtonClick}
+          >
+            {t('backup.importButton')}
+          </button>
+          <input
+            ref={importInputRef}
+            accept="application/json"
+            className="visually-hidden"
+            type="file"
+            onChange={(event) => void handleImportFile(event)}
+          />
+        </div>
+
+        <article className="backup-card">
+          <strong>{t('backup.replaceTitle')}</strong>
+          <p>{t('backup.replaceCopy')}</p>
+        </article>
+
+        {backupNotice ? (
+          <p
+            className={
+              backupNoticeTone === 'success'
+                ? 'backup-notice success'
+                : 'backup-notice error'
+            }
+          >
+            {backupNotice}
+          </p>
+        ) : null}
       </section>
     </main>
   )
