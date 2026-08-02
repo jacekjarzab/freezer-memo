@@ -228,6 +228,7 @@
 }
 
 .field-group input,
+.field-group select,
 .search-input {
   width: 100%;
   border-radius: 1rem;
@@ -238,6 +239,7 @@
 }
 
 .field-group input:focus,
+.field-group select:focus,
 .search-input:focus {
   outline: 2px solid rgba(18, 50, 68, 0.2);
   border-color: var(--accent);
@@ -325,6 +327,10 @@
   color: var(--accent);
 }
 
+.small-button {
+  padding-inline: 0.6rem;
+}
+
 .language-switcher {
   display: inline-flex;
   gap: 0.35rem;
@@ -365,9 +371,20 @@
 }
 
 .backup-panel,
-.backup-actions {
+.backup-actions,
+.edit-panel {
   display: grid;
   gap: 1rem;
+}
+
+.edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.edit-notes {
+  grid-column: 1 / -1;
 }
 
 .backup-actions {
@@ -497,7 +514,8 @@
   .option-grid,
   .option-grid.compact,
   .quantity-panel,
-  .backup-actions {
+  .backup-actions,
+  .edit-grid {
     grid-template-columns: 1fr;
   }
 

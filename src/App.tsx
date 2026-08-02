@@ -49,6 +49,17 @@ function createInitialDraft(): AddDraft {
   }
 }
 
+function createDraftFromItem(item: FreezerItemRecord): AddDraft {
+  return {
+    categoryKey: item.categoryKey,
+    cutKey: item.cutKey,
+    quantityType: item.quantityType,
+    quantityValue: String(item.quantityValue),
+    quantityUnit: item.quantityUnit,
+    notes: item.notes,
+  }
+}
+
 function App() {
   const { t, i18n } = useTranslation()
   const importInputRef = useRef<HTMLInputElement | null>(null)
@@ -58,6 +69,12 @@ function App() {
   const [addScreen, setAddScreen] = useState<AddScreen>('category')
   const [draft, setDraft] = useState<AddDraft>(createInitialDraft())
   const [lastSavedDraft, setLastSavedDraft] = useState<AddDraft | null>(null)
+  const [editingItemId, setEditingItemId] = useState<string | null>(null)
+  const [editDraft, setEditDraft] = useState<AddDraft>(createInitialDraft())
+  const [editNotice, setEditNotice] = useState<string | null>(null)
+  const [editNoticeTone, setEditNoticeTone] = useState<'success' | 'error'>(
+    'success',
+  )
   const [backupNotice, setBackupNotice] = useState<string | null>(null)
   const [backupNoticeTone, setBackupNoticeTone] = useState<'success' | 'error'>(
     'success',
@@ -128,10 +145,18 @@ function App() {
   )
 
   const currentCuts = CUT_OPTIONS_BY_CATEGORY[draft.categoryKey]
+  const currentEditCuts = CUT_OPTIONS_BY_CATEGORY[editDraft.categoryKey]
   const currentStepIndex =
     addScreen === 'done' ? addSteps.length : addSteps.indexOf(addScreen)
   const progressValue = ((currentStepIndex + 1) / (addSteps.length + 1)) * 100
   const parsedQuantityValue = Number.parseFloat(draft.quantityValue.replace(',', '.'))
+  const parsedEditQuantityValue = Number.parseFloat(
+    editDraft.quantityValue.replace(',', '.'),
+  )
+  const editingItem =
+    editingItemId === null
+      ? null
+      : (items ?? []).find((item) => item.id === editingItemId) ?? null
 
   function openAddFlow(prefill?: Partial<AddDraft>, step: AddScreen = 'category') {
     setDraft({
@@ -151,6 +176,10 @@ function App() {
     setDraft((current) => ({ ...current, ...patch }))
   }
 
+  function updateEditDraft(patch: Partial<AddDraft>) {
+    setEditDraft((current) => ({ ...current, ...patch }))
+  }
+
   function updateLanguage(language: 'en' | 'pl') {
     void i18n.changeLanguage(language)
     window.localStorage.setItem('freezer-memo-language', language)
@@ -165,6 +194,20 @@ function App() {
 
   function handleQuantityTypeSelect(nextType: QuantityType) {
     updateDraft({
+      quantityType: nextType,
+      quantityUnit: nextType === 'weight' ? 'g' : nextType,
+    })
+  }
+
+  function handleEditCategorySelect(nextCategory: CategoryKey) {
+    updateEditDraft({
+      categoryKey: nextCategory,
+      cutKey: CUT_OPTIONS_BY_CATEGORY[nextCategory][0],
+    })
+  }
+
+  function handleEditQuantityTypeSelect(nextType: QuantityType) {
+    updateEditDraft({
       quantityType: nextType,
       quantityUnit: nextType === 'weight' ? 'g' : nextType,
     })
@@ -289,6 +332,38 @@ function App() {
     }
 
     openAddFlow(lastSavedDraft, 'quantityValue')
+  }
+
+  function openEditPanel(item: FreezerItemRecord) {
+    setEditingItemId(item.id)
+    setEditDraft(createDraftFromItem(item))
+    setEditNotice(null)
+  }
+
+  function closeEditPanel() {
+    setEditingItemId(null)
+    setEditNotice(null)
+  }
+
+  async function handleSaveEdit() {
+    if (!editingItem || !Number.isFinite(parsedEditQuantityValue) || parsedEditQuantityValue <= 0) {
+      setEditNoticeTone('error')
+      setEditNotice(t('edit.errors.invalidQuantity'))
+      return
+    }
+
+    await db.freezerItems.update(editingItem.id, {
+      categoryKey: editDraft.categoryKey,
+      cutKey: editDraft.cutKey,
+      quantityType: editDraft.quantityType,
+      quantityValue: parsedEditQuantityValue,
+      quantityUnit: editDraft.quantityUnit,
+      notes: editDraft.notes.trim(),
+      updatedAt: new Date().toISOString(),
+    })
+
+    setEditNoticeTone('success')
+    setEditNotice(t('edit.saved'))
   }
 
   async function handleExportBackup() {
@@ -753,6 +828,13 @@ function App() {
                     {t(`statuses.${item.status}`)}
                   </span>
                   <button
+                    className="ghost-button small-button"
+                    type="button"
+                    onClick={() => openEditPanel(item)}
+                  >
+                    {t('actions.edit')}
+                  </button>
+                  <button
                     className="secondary-button"
                     type="button"
                     onClick={() => void handleTakeOut(item)}
@@ -767,6 +849,163 @@ function App() {
           )}
         </div>
       </section>
+
+      {editingItem ? (
+        <section className="panel edit-panel">
+          <div className="panel-heading edit-header">
+            <div>
+              <p className="eyebrow">{t('edit.eyebrow')}</p>
+              <h2>{t('edit.title')}</h2>
+            </div>
+            <p className="panel-copy">{t('edit.subtitle')}</p>
+          </div>
+
+          <div className="edit-grid">
+            <div className="field-group">
+              <label htmlFor="edit-category">{t('fields.category')}</label>
+              <select
+                id="edit-category"
+                value={editDraft.categoryKey}
+                onChange={(event) =>
+                  handleEditCategorySelect(event.target.value as CategoryKey)
+                }
+              >
+                {CATEGORY_KEYS.map((key) => (
+                  <option key={key} value={key}>
+                    {t(`catalog.categories.${key}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field-group">
+              <label htmlFor="edit-cut">{t('fields.cut')}</label>
+              <select
+                id="edit-cut"
+                value={editDraft.cutKey}
+                onChange={(event) => updateEditDraft({ cutKey: event.target.value })}
+              >
+                {currentEditCuts.map((key) => (
+                  <option key={key} value={key}>
+                    {t(`catalog.cuts.${editDraft.categoryKey}.${key}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field-group">
+              <label htmlFor="edit-quantity-type">{t('fields.quantityType')}</label>
+              <select
+                id="edit-quantity-type"
+                value={editDraft.quantityType}
+                onChange={(event) =>
+                  handleEditQuantityTypeSelect(event.target.value as QuantityType)
+                }
+              >
+                {quantityTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {t(`quantities.types.${type}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field-group">
+              <label htmlFor="edit-quantity-value">{t('fields.quantityValue')}</label>
+              <input
+                id="edit-quantity-value"
+                inputMode="decimal"
+                value={editDraft.quantityValue}
+                onChange={(event) =>
+                  updateEditDraft({ quantityValue: event.target.value })
+                }
+              />
+            </div>
+
+            <div className="field-group">
+              <label htmlFor="edit-quantity-unit">{t('fields.quantityUnit')}</label>
+              {editDraft.quantityType === 'weight' ? (
+                <select
+                  id="edit-quantity-unit"
+                  value={editDraft.quantityUnit}
+                  onChange={(event) =>
+                    updateEditDraft({ quantityUnit: event.target.value })
+                  }
+                >
+                  {weightUnits.map((unit) => (
+                    <option key={unit} value={unit}>
+                      {unit}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  id="edit-quantity-unit"
+                  value={editDraft.quantityUnit}
+                  onChange={(event) =>
+                    updateEditDraft({ quantityUnit: event.target.value })
+                  }
+                />
+              )}
+            </div>
+
+            <div className="field-group edit-notes">
+              <label htmlFor="edit-notes">{t('fields.notes')}</label>
+              <input
+                id="edit-notes"
+                value={editDraft.notes}
+                placeholder={t('fields.notesPlaceholder')}
+                onChange={(event) => updateEditDraft({ notes: event.target.value })}
+              />
+            </div>
+          </div>
+
+          <article className="review-card">
+            <span>{t('edit.previewLabel')}</span>
+            <strong>
+              {t(`catalog.categories.${editDraft.categoryKey}`)} ·{' '}
+              {t(`catalog.cuts.${editDraft.categoryKey}.${editDraft.cutKey}`)}
+            </strong>
+            <p>
+              {formatQuantity(
+                {
+                  ...editingItem,
+                  categoryKey: editDraft.categoryKey,
+                  cutKey: editDraft.cutKey,
+                  quantityType: editDraft.quantityType,
+                  quantityValue: Number.isFinite(parsedEditQuantityValue)
+                    ? parsedEditQuantityValue
+                    : 0,
+                  quantityUnit: editDraft.quantityUnit,
+                  notes: editDraft.notes,
+                },
+                t,
+              )}
+            </p>
+          </article>
+
+          {editNotice ? (
+            <p
+              className={
+                editNoticeTone === 'success'
+                  ? 'backup-notice success'
+                  : 'backup-notice error'
+              }
+            >
+              {editNotice}
+            </p>
+          ) : null}
+
+          <div className="panel-actions">
+            <button className="secondary-button" type="button" onClick={closeEditPanel}>
+              {t('actions.close')}
+            </button>
+            <button className="primary-button" type="button" onClick={() => void handleSaveEdit()}>
+              {t('actions.saveChanges')}
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <section className="panel backup-panel">
         <div className="panel-heading">

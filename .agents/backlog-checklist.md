@@ -13,7 +13,7 @@ Status legend:
 
 - [x] Create repo, MVP spec, and initial project scaffold
 - [x] Turn the add-item experience into a real step-by-step mobile flow
-- [ ] Add edit item details and correction flow
+- [x] Add edit item details and correction flow
 - [x] Add JSON export/import backup
 - [ ] Tighten offline/PWA behavior and install UX
 - [ ] Prepare MVP for real-device testing
@@ -58,7 +58,7 @@ Status legend:
 - [ ] Add category filters
 - [ ] Add sorting controls
 - [ ] Add dedicated history view or clearer history mode
-- [ ] Add item details / edit screen
+- [x] Add item details / edit screen
 - [ ] Improve search matching across translated labels
 
 ## Data and Storage
