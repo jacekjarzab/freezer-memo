@@ -135,14 +135,22 @@ const resources = {
         emptyTitle: 'Nothing matched the current search.',
         emptyCopy: 'Add your first pack or loosen the filters.',
       },
+      history: {
+        eyebrow: 'Taken-out history',
+        title: 'Freezer history',
+        modeLabel: 'Inventory view',
+        currentView: 'Current',
+        historyView: 'History',
+        searchPlaceholder: 'Search taken-out items by type, cut, note, or quantity',
+        emptyTitle: 'No taken-out items matched this view.',
+        emptyCopy: 'Use the freezer a bit or loosen the filters.',
+      },
       recent: {
         title: 'Quick add again',
       },
       filters: {
         allCategories: 'All categories',
         category: 'Category filter',
-        showTakenOut: 'Show history',
-        hideTakenOut: 'Hide history',
         sortBy: 'Sort by',
         sortOptions: {
           newest: 'Newest first',
@@ -388,14 +396,22 @@ const resources = {
         emptyTitle: 'Nic nie pasuje do aktualnego wyszukiwania.',
         emptyCopy: 'Dodaj pierwszy pakunek albo poluzuj filtry.',
       },
+      history: {
+        eyebrow: 'Historia wyjętych rzeczy',
+        title: 'Historia zamrażarki',
+        modeLabel: 'Widok listy',
+        currentView: 'Aktualne',
+        historyView: 'Historia',
+        searchPlaceholder: 'Szukaj wyjętych rzeczy po typie, części, notatce albo ilości',
+        emptyTitle: 'Żadne wyjęte produkty nie pasują do tego widoku.',
+        emptyCopy: 'Najpierw coś wyjmij albo poluzuj filtry.',
+      },
       recent: {
         title: 'Dodaj ponownie',
       },
       filters: {
         allCategories: 'Wszystkie kategorie',
         category: 'Filtr kategorii',
-        showTakenOut: 'Pokaż historię',
-        hideTakenOut: 'Ukryj historię',
         sortBy: 'Sortowanie',
         sortOptions: {
           newest: 'Najnowsze najpierw',

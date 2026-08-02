@@ -57,7 +57,7 @@ Status legend:
 - [x] Add recent item quick repeat
 - [x] Add category filters
 - [x] Add sorting controls
-- [ ] Add dedicated history view or clearer history mode
+- [x] Add dedicated history view or clearer history mode
 - [x] Add item details / edit screen
 - [ ] Improve search matching across translated labels
 

@@ -18,6 +18,7 @@ import { formatFrozenDate, formatQuantity } from './lib/format'
 type AddStep = 'category' | 'cut' | 'quantityType' | 'quantityValue' | 'notes'
 type AddScreen = AddStep | 'done'
 type SortOption = 'newest' | 'oldest' | 'category'
+type InventoryMode = 'current' | 'history'
 
 interface AddDraft {
   categoryKey: CategoryKey
@@ -65,7 +66,7 @@ function App() {
   const { t, i18n } = useTranslation()
   const importInputRef = useRef<HTMLInputElement | null>(null)
   const [search, setSearch] = useState('')
-  const [showTakenOut, setShowTakenOut] = useState(false)
+  const [inventoryMode, setInventoryMode] = useState<InventoryMode>('current')
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<
     CategoryKey | 'all'
   >('all')
@@ -120,7 +121,11 @@ function App() {
 
     return (items ?? [])
       .filter((item) => {
-        if (!showTakenOut && item.status === 'taken_out') {
+        if (inventoryMode === 'current' && item.status === 'taken_out') {
+          return false
+        }
+
+        if (inventoryMode === 'history' && item.status !== 'taken_out') {
           return false
         }
 
@@ -161,7 +166,7 @@ function App() {
 
         return right.createdAt.localeCompare(left.createdAt)
       })
-  }, [activeCategoryFilter, deferredSearch, items, showTakenOut, sortOption, t])
+  }, [activeCategoryFilter, deferredSearch, inventoryMode, items, sortOption, t])
 
   const activeCount =
     items?.filter((item) => item.status === 'in_freezer').length ?? 0
@@ -784,23 +789,56 @@ function App() {
       <section className="panel">
         <div className="panel-heading">
           <div>
-            <p className="eyebrow">{t('inventory.eyebrow')}</p>
-            <h2>{t('inventory.title')}</h2>
+            <p className="eyebrow">
+              {inventoryMode === 'current'
+                ? t('inventory.eyebrow')
+                : t('history.eyebrow')}
+            </p>
+            <h2>
+              {inventoryMode === 'current'
+                ? t('inventory.title')
+                : t('history.title')}
+            </h2>
           </div>
-          <button
-            className="ghost-button"
-            type="button"
-            onClick={() => setShowTakenOut((current) => !current)}
-          >
-            {showTakenOut ? t('filters.hideTakenOut') : t('filters.showTakenOut')}
-          </button>
+          <div className="view-switcher" aria-label={t('history.modeLabel')}>
+            <button
+              className={
+                inventoryMode === 'current'
+                  ? 'filter-chip active'
+                  : 'filter-chip'
+              }
+              type="button"
+              onClick={() => setInventoryMode('current')}
+            >
+              {t('history.currentView')}
+            </button>
+            <button
+              className={
+                inventoryMode === 'history'
+                  ? 'filter-chip active'
+                  : 'filter-chip'
+              }
+              type="button"
+              onClick={() => setInventoryMode('history')}
+            >
+              {t('history.historyView')}
+            </button>
+          </div>
         </div>
 
         <div className="search-row">
           <input
-            aria-label={t('inventory.searchPlaceholder')}
+            aria-label={
+              inventoryMode === 'current'
+                ? t('inventory.searchPlaceholder')
+                : t('history.searchPlaceholder')
+            }
             className="search-input"
-            placeholder={t('inventory.searchPlaceholder')}
+            placeholder={
+              inventoryMode === 'current'
+                ? t('inventory.searchPlaceholder')
+                : t('history.searchPlaceholder')
+            }
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -849,7 +887,7 @@ function App() {
           </div>
         </div>
 
-        {recentItems.length > 0 ? (
+        {inventoryMode === 'current' && recentItems.length > 0 ? (
           <div className="quick-add-section">
             <p className="section-label">{t('recent.title')}</p>
             <div className="quick-add-grid">
@@ -871,8 +909,16 @@ function App() {
         <div className="inventory-list">
           {filteredItems.length === 0 ? (
             <article className="empty-state">
-              <strong>{t('inventory.emptyTitle')}</strong>
-              <p>{t('inventory.emptyCopy')}</p>
+              <strong>
+                {inventoryMode === 'current'
+                  ? t('inventory.emptyTitle')
+                  : t('history.emptyTitle')}
+              </strong>
+              <p>
+                {inventoryMode === 'current'
+                  ? t('inventory.emptyCopy')
+                  : t('history.emptyCopy')}
+              </p>
             </article>
           ) : (
             filteredItems.map((item) => (
