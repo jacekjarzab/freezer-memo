@@ -16,6 +16,7 @@ import {
   CUT_OPTIONS_BY_CATEGORY,
   type CategoryKey,
 } from './data/catalog'
+import { CategoryIcon } from './components/CategoryIcon'
 import {
   createBackupPayload,
   importBackupPayload,
@@ -53,7 +54,7 @@ const addSteps: AddStep[] = [
 
 const quantityTypes: QuantityType[] = ['weight', 'packs', 'pieces']
 const weightUnits = ['kg', 'g'] as const
-const appVersion = 'v1.0'
+const appVersion = 'v1.1'
 
 function createInitialDraft(): AddDraft {
   return {
@@ -817,7 +818,10 @@ function App() {
                       type="button"
                       onClick={() => handleCategorySelect(key)}
                     >
-                      <strong>{t(`catalog.categories.${key}`)}</strong>
+                      <span className="option-card-line">
+                        <CategoryIcon className="option-card-icon" category={key} />
+                        <strong>{t(`catalog.categories.${key}`)}</strong>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -864,7 +868,7 @@ function App() {
                 <div className="step-content">
                   <div className="quantity-panel">
                     <div className="quantity-inline">
-                    <div className="field-group quantity-amount-group">
+                      <div className="field-group quantity-amount-group">
                       <label htmlFor="quantityValue">
                         {t('fields.quantityValue')}
                       </label>
@@ -879,7 +883,7 @@ function App() {
                       />
                     </div>
 
-                    <div className="field-group quantity-unit-group">
+                      <div className="field-group quantity-unit-group">
                       <label>{t('fields.quantityUnit')}</label>
                       {draft.quantityType === 'weight' ? (
                         <div className="pill-row">
@@ -905,7 +909,7 @@ function App() {
                           </span>
                         </div>
                       )}
-                    </div>
+                      </div>
                     </div>
                   </div>
 
@@ -1105,6 +1109,7 @@ function App() {
                 type="button"
                 onClick={() => setActiveCategoryFilter(key)}
               >
+                <CategoryIcon className="filter-chip-icon" category={key} />
                 {t(`catalog.categories.${key}`)}
               </button>
             ))}
@@ -1124,7 +1129,7 @@ function App() {
           </div>
         </div>
 
-        {inventoryMode === 'current' && recentItems.length > 0 ? (
+              {inventoryMode === 'current' && recentItems.length > 0 ? (
           <div className="quick-add-section">
             <p className="section-label">{t('recent.title')}</p>
             <div className="quick-add-grid">
@@ -1135,6 +1140,10 @@ function App() {
                   type="button"
                   onClick={() => applyRecent(item)}
                 >
+                  <CategoryIcon
+                    className="quick-add-icon"
+                    category={item.categoryKey}
+                  />
                   <strong>{t(`catalog.cuts.${item.categoryKey}.${item.cutKey}`)}</strong>
                   <span>{formatQuantity(item, t)}</span>
                 </button>
@@ -1162,26 +1171,20 @@ function App() {
               <article className="inventory-card" key={item.id}>
                 <div className="inventory-main">
                   <div className="inventory-copy">
-                    <h3>
-                      {t(`catalog.categories.${item.categoryKey}`)} |{' '}
-                      {t(`catalog.cuts.${item.categoryKey}.${item.cutKey}`)}
-                    </h3>
+                    <div className="inventory-title-row">
+                      <CategoryIcon
+                        className="inventory-icon"
+                        category={item.categoryKey}
+                      />
+                      <h3>
+                        {t(`catalog.categories.${item.categoryKey}`)} |{' '}
+                        {t(`catalog.cuts.${item.categoryKey}.${item.cutKey}`)}
+                      </h3>
+                      <strong className="quantity-badge">
+                        {formatQuantity(item, t)}
+                      </strong>
+                    </div>
                   </div>
-                </div>
-
-                <div className="inventory-row inventory-row-badges">
-                  <strong className="quantity-badge">
-                    {formatQuantity(item, t)}
-                  </strong>
-                  <span
-                    className={
-                      item.status === 'in_freezer'
-                        ? 'status-pill active'
-                        : 'status-pill'
-                    }
-                  >
-                    {t(`statuses.${item.status}`)}
-                  </span>
                 </div>
 
                 <p className="meta-line">
@@ -1191,20 +1194,20 @@ function App() {
 
                 <div className="card-actions inventory-actions">
                   <button
-                    className="ghost-button small-button"
-                    type="button"
-                    onClick={() => openEditPanel(item)}
-                  >
-                    {t('actions.edit')}
-                  </button>
-                  <button
-                    className="secondary-button"
+                    className="secondary-button small-button"
                     type="button"
                     onClick={() => void handleTakeOut(item)}
                   >
                     {item.status === 'in_freezer'
                       ? t('actions.takeOut')
                       : t('actions.restore')}
+                  </button>
+                  <button
+                    className="ghost-button small-button"
+                    type="button"
+                    onClick={() => openEditPanel(item)}
+                  >
+                    {t('actions.edit')}
                   </button>
                 </div>
               </article>
@@ -1380,7 +1383,7 @@ function App() {
           >
             <span>
               <p className="eyebrow">{t('backup.eyebrow')}</p>
-              <h2>{t('backup.title')}</h2>
+              <h3>{t('backup.title')}</h3>
             </span>
             <span className="backup-toggle-icon" aria-hidden="true">
               {isBackupOpen ? '−' : '+'}

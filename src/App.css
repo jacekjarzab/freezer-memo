@@ -63,6 +63,10 @@
   justify-content: space-between;
 }
 
+.search-row {
+  margin-top: 0.6rem;
+}
+
 .app-brand {
   min-width: 0;
   justify-content: flex-start;
@@ -166,12 +170,27 @@
   padding: 1.25rem;
 }
 
-.add-flow-panel,
+.add-flow-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .step-shell,
 .step-content,
-.step-header,
-.quantity-panel,
 .success-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+}
+
+.step-shell {
+  flex: 1;
+}
+
+.step-header,
+.quantity-panel {
   display: grid;
   gap: 1rem;
 }
@@ -254,6 +273,31 @@
     background 140ms ease;
 }
 
+.option-card-line,
+.option-card strong,
+.option-card span {
+  justify-self: start;
+}
+
+.option-card-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.option-card-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.option-card-line strong {
+  min-width: 0;
+  line-height: 1.15;
+}
+
 .tight-option-grid .option-card {
   padding: 0.8rem 0.9rem;
 }
@@ -269,6 +313,43 @@
 .option-card.active {
   border-color: rgba(23, 77, 99, 0.5);
   background: linear-gradient(180deg, rgba(226, 242, 246, 0.98), rgba(247, 251, 252, 0.96));
+}
+
+.option-card-icon,
+.quick-add-icon,
+.inventory-icon,
+.filter-chip-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  color: var(--accent);
+  object-fit: contain;
+}
+
+.option-card-icon {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.quick-add-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.inventory-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+}
+
+.filter-chip-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  margin-right: 0.3rem;
+  vertical-align: -0.15em;
 }
 
 .option-card strong,
@@ -500,6 +581,25 @@
   flex-wrap: wrap;
 }
 
+.inventory-title-row h3 {
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.inventory-card .inventory-title-row {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+.inventory-card .inventory-title-row h3 {
+  flex: 1 1 auto;
+}
+
+.inventory-card .quantity-badge {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .inventory-view-switcher {
   margin-left: auto;
 }
@@ -515,6 +615,19 @@
 
 .quick-add-card.compact span {
   font-size: 0.82rem;
+}
+
+.inventory-copy h3 {
+  line-height: 1.2;
+}
+
+.add-flow-panel .panel-actions {
+  margin-top: auto;
+}
+
+.add-flow-panel .step-content,
+.add-flow-panel .success-shell {
+  flex: 1;
 }
 
 .backup-panel,
@@ -780,29 +893,15 @@
 }
 
 .quantity-badge,
-.status-pill {
+.quantity-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   font-weight: 700;
-}
-
-.quantity-badge {
   padding: 0.45rem 0.7rem;
   background: rgba(18, 50, 68, 0.08);
   color: var(--text-strong);
-}
-
-.status-pill {
-  padding: 0.4rem 0.7rem;
-  background: rgba(101, 117, 128, 0.12);
-  color: var(--muted);
-}
-
-.status-pill.active {
-  background: rgba(54, 129, 114, 0.15);
-  color: #1d6458;
 }
 
 .empty-state {
@@ -1044,53 +1143,30 @@
     padding: 0.7rem;
   }
 
-.inventory-main {
-  align-items: start;
-  gap: 0.35rem;
-}
+  .inventory-main {
+    align-items: start;
+    gap: 0.35rem;
+  }
 
-.inventory-main > div {
-  min-width: 0;
-}
-
-.inventory-row {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.inventory-row-badges {
-  justify-content: flex-start;
-  gap: 0.4rem;
-}
+  .inventory-main > div {
+    min-width: 0;
+  }
 
   .card-kicker {
     font-size: 0.65rem;
   }
 
-.inventory-card h3 {
-  font-size: 0.96rem;
-}
+  .inventory-card h3 {
+    font-size: 0.96rem;
+  }
 
-.inventory-copy h3 {
-  line-height: 1.2;
-}
+  .inventory-copy h3 {
+    line-height: 1.2;
+  }
 
-.quantity-badge {
-  padding: 0.38rem 0.58rem;
-  font-size: 0.78rem;
-}
-
-.status-pill {
-  white-space: nowrap;
-}
-
-.status-pill {
-  font-size: 0.68rem;
-}
-
-  .inventory-row-badges {
-    gap: 0.4rem;
+  .quantity-badge {
+    padding: 0.38rem 0.58rem;
+    font-size: 0.78rem;
   }
 
   .meta-line {
@@ -1116,20 +1192,24 @@
   }
 
   .inventory-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.25rem;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    width: fit-content;
+    max-width: 100%;
+    gap: 0.35rem;
     overflow: visible;
-  }
-
-  .card-actions > * {
-    flex: 0 0 auto;
   }
 
   .card-actions .secondary-button,
   .card-actions .ghost-button {
-    padding: 0.48rem 0.7rem;
+    padding: 0.42rem 0.6rem;
+    font-size: 0.8rem;
     white-space: nowrap;
+    width: auto;
+    flex: 0 0 auto;
   }
 
   .edit-panel,
@@ -1175,6 +1255,16 @@
   .pwa-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .inventory-actions {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    width: fit-content;
+    max-width: 100%;
+    align-self: flex-start;
   }
 
   .panel-actions {
