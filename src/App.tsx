@@ -24,12 +24,14 @@ import {
 } from './lib/backup'
 import { db, type FreezerItemRecord, type QuantityType } from './lib/db'
 import { formatFrozenDate, formatQuantity } from './lib/format'
+import {
+  filterAndSortInventory,
+  type InventoryMode,
+  type SortOption,
+} from './lib/inventory'
 
 type AddStep = 'category' | 'cut' | 'quantityType' | 'quantityValue' | 'notes'
 type AddScreen = AddStep | 'done'
-type SortOption = 'newest' | 'oldest' | 'category'
-type InventoryMode = 'current' | 'history'
-
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
@@ -108,6 +110,9 @@ function App() {
   const [installNotice, setInstallNotice] = useState<string | null>(null)
   const [isOfflineReady, setIsOfflineReady] = useState(false)
   const [updateAvailable, setUpdateAvailable] = useState(false)
+  const [operationNotice, setOperationNotice] = useState<string | null>(null)
+  const [pendingUndoItemId, setPendingUndoItemId] = useState<string | null>(null)
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [serviceWorkerUpdater, setServiceWorkerUpdater] = useState<
     (() => Promise<void>) | null
   >(null)
@@ -143,57 +148,18 @@ function App() {
       .slice(0, 4)
   }, [items])
 
-  const filteredItems = useMemo(() => {
-    const query = deferredSearch.trim().toLowerCase()
-
-    return (items ?? [])
-      .filter((item) => {
-        if (inventoryMode === 'current' && item.status === 'taken_out') {
-          return false
-        }
-
-        if (inventoryMode === 'history' && item.status !== 'taken_out') {
-          return false
-        }
-
-        if (
-          activeCategoryFilter !== 'all' &&
-          item.categoryKey !== activeCategoryFilter
-        ) {
-          return false
-        }
-
-        const categoryLabel = t(`catalog.categories.${item.categoryKey}`)
-        const cutLabel = t(`catalog.cuts.${item.categoryKey}.${item.cutKey}`)
-        const quantityLabel = formatQuantity(item, t)
-        const haystack = [categoryLabel, cutLabel, quantityLabel, item.notes]
-          .join(' ')
-          .toLowerCase()
-
-        return !query || haystack.includes(query)
-      })
-      .sort((left, right) => {
-        if (sortOption === 'oldest') {
-          return left.createdAt.localeCompare(right.createdAt)
-        }
-
-        if (sortOption === 'category') {
-          const categoryCompare = t(
-            `catalog.categories.${left.categoryKey}`,
-          ).localeCompare(t(`catalog.categories.${right.categoryKey}`))
-
-          if (categoryCompare !== 0) {
-            return categoryCompare
-          }
-
-          return t(`catalog.cuts.${left.categoryKey}.${left.cutKey}`).localeCompare(
-            t(`catalog.cuts.${right.categoryKey}.${right.cutKey}`),
-          )
-        }
-
-        return right.createdAt.localeCompare(left.createdAt)
-      })
-  }, [activeCategoryFilter, deferredSearch, inventoryMode, items, sortOption, t])
+  const filteredItems = useMemo(
+    () =>
+      filterAndSortInventory(items ?? [], {
+        mode: inventoryMode,
+        category: activeCategoryFilter,
+        query: deferredSearch,
+        sort: sortOption,
+        labelFor: (key) => t(key),
+        quantityLabelFor: (item) => formatQuantity(item, t),
+      }),
+    [activeCategoryFilter, deferredSearch, inventoryMode, items, sortOption, t],
+  )
 
   const activeCount =
     items?.filter((item) => item.status === 'in_freezer').length ?? 0
@@ -322,6 +288,15 @@ function App() {
     }
   }, [showAddPanel])
 
+  useEffect(
+    () => () => {
+      if (undoTimerRef.current) {
+        clearTimeout(undoTimerRef.current)
+      }
+    },
+    [],
+  )
+
   function openAddFlow(prefill?: Partial<AddDraft>, step: AddScreen = 'category') {
     setDraft({
       ...createInitialDraft(),
@@ -448,20 +423,25 @@ function App() {
       notes: draft.notes.trim(),
     }
 
-    await db.freezerItems.add({
-      id: crypto.randomUUID(),
-      status: 'in_freezer',
-      categoryKey: normalizedDraft.categoryKey,
-      cutKey: normalizedDraft.cutKey,
-      quantityType: normalizedDraft.quantityType,
-      quantityValue: Number.parseFloat(normalizedDraft.quantityValue),
-      quantityUnit: normalizedDraft.quantityUnit,
-      notes: normalizedDraft.notes,
-      frozenAt: now,
-      takenOutAt: null,
-      createdAt: now,
-      updatedAt: now,
-    })
+    try {
+      await db.freezerItems.add({
+        id: crypto.randomUUID(),
+        status: 'in_freezer',
+        categoryKey: normalizedDraft.categoryKey,
+        cutKey: normalizedDraft.cutKey,
+        quantityType: normalizedDraft.quantityType,
+        quantityValue: Number.parseFloat(normalizedDraft.quantityValue),
+        quantityUnit: normalizedDraft.quantityUnit,
+        notes: normalizedDraft.notes,
+        frozenAt: now,
+        takenOutAt: null,
+        createdAt: now,
+        updatedAt: now,
+      })
+    } catch {
+      setOperationNotice(t('storage.errors.save'))
+      return
+    }
 
     setLastSavedDraft(normalizedDraft)
     setDraft(normalizedDraft)
@@ -469,12 +449,57 @@ function App() {
   }
 
   async function handleTakeOut(item: FreezerItemRecord) {
-    await db.freezerItems.update(item.id, {
-      status: item.status === 'in_freezer' ? 'taken_out' : 'in_freezer',
-      takenOutAt:
-        item.status === 'in_freezer' ? new Date().toISOString() : null,
-      updatedAt: new Date().toISOString(),
-    })
+    const takingOut = item.status === 'in_freezer'
+
+    try {
+      const updated = await db.freezerItems.update(item.id, {
+        status: takingOut ? 'taken_out' : 'in_freezer',
+        takenOutAt: takingOut ? new Date().toISOString() : null,
+        updatedAt: new Date().toISOString(),
+      })
+
+      if (!updated) {
+        throw new Error('missing_item')
+      }
+
+      setOperationNotice(null)
+      setPendingUndoItemId(takingOut ? item.id : null)
+      if (undoTimerRef.current) {
+        clearTimeout(undoTimerRef.current)
+      }
+      if (takingOut) {
+        undoTimerRef.current = setTimeout(() => {
+          setPendingUndoItemId(null)
+        }, 5000)
+      }
+    } catch {
+      setOperationNotice(t('storage.errors.save'))
+    }
+  }
+
+  async function handleUndoTakeOut() {
+    if (!pendingUndoItemId) {
+      return
+    }
+
+    try {
+      const updated = await db.freezerItems.update(pendingUndoItemId, {
+        status: 'in_freezer',
+        takenOutAt: null,
+        updatedAt: new Date().toISOString(),
+      })
+
+      if (!updated) {
+        throw new Error('missing_item')
+      }
+
+      setPendingUndoItemId(null)
+      if (undoTimerRef.current) {
+        clearTimeout(undoTimerRef.current)
+      }
+    } catch {
+      setOperationNotice(t('storage.errors.save'))
+    }
   }
 
   function applyRecent(item: FreezerItemRecord) {
@@ -518,22 +543,40 @@ function App() {
       return
     }
 
-    await db.freezerItems.update(editingItem.id, {
-      categoryKey: editDraft.categoryKey,
-      cutKey: editDraft.cutKey,
-      quantityType: editDraft.quantityType,
-      quantityValue: parsedEditQuantityValue,
-      quantityUnit: editDraft.quantityUnit,
-      notes: editDraft.notes.trim(),
-      updatedAt: new Date().toISOString(),
-    })
+    try {
+      const updated = await db.freezerItems.update(editingItem.id, {
+        categoryKey: editDraft.categoryKey,
+        cutKey: editDraft.cutKey,
+        quantityType: editDraft.quantityType,
+        quantityValue: parsedEditQuantityValue,
+        quantityUnit: editDraft.quantityUnit,
+        notes: editDraft.notes.trim(),
+        updatedAt: new Date().toISOString(),
+      })
+
+      if (!updated) {
+        throw new Error('missing_item')
+      }
+    } catch {
+      setEditNoticeTone('error')
+      setEditNotice(t('storage.errors.save'))
+      return
+    }
 
     setEditNoticeTone('success')
     setEditNotice(t('edit.saved'))
   }
 
   async function handleExportBackup() {
-    const payload = await createBackupPayload()
+    let payload
+
+    try {
+      payload = await createBackupPayload()
+    } catch {
+      setBackupNoticeTone('error')
+      setBackupNotice(t('storage.errors.load'))
+      return
+    }
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: 'application/json',
     })
@@ -724,6 +767,25 @@ function App() {
           </button>
         </div>
       </header>
+
+      {operationNotice ? (
+        <p className="backup-notice error" role="alert">
+          {operationNotice}
+        </p>
+      ) : null}
+
+      {pendingUndoItemId ? (
+        <div className="backup-notice success undo-notice" role="status">
+          <span>{t('inventory.takeOutSaved')}</span>
+          <button
+            className="ghost-button small-button"
+            type="button"
+            onClick={() => void handleUndoTakeOut()}
+          >
+            {t('actions.undo')}
+          </button>
+        </div>
+      ) : null}
 
       <section className="summary-grid" aria-label={t('summary.title')}>
         <article className="summary-card emphasis">

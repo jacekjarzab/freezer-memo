@@ -833,6 +833,13 @@
   color: #8d342c;
 }
 
+.undo-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

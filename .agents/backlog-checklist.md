@@ -59,7 +59,7 @@ Status legend:
 - [x] Add sorting controls
 - [x] Add dedicated history view or clearer history mode
 - [x] Add item details / edit screen
-- [ ] Improve search matching across translated labels
+- [x] Improve search matching across translated labels
 
 ## Data and Storage
 
@@ -79,7 +79,7 @@ Status legend:
 - [ ] Extract any remaining hardcoded UI copy
 - [ ] Verify pluralization/quantity phrasing in English
 - [ ] Verify pluralization/quantity phrasing in Polish
-- [ ] Test language switching against saved items and search behavior
+- [x] Test language switching against saved items and search behavior
 
 ## PWA and Offline
 
@@ -95,7 +95,7 @@ Status legend:
 
 - [ ] Refine visual hierarchy for inventory cards
 - [ ] Improve search-first home screen layout
-- [ ] Add confirmation/undo feedback for take-out action
+- [x] Add confirmation/undo feedback for take-out action
 - [ ] Improve forms for fast thumb use
 - [ ] Add subtle motion/transitions without making it annoying
 - [ ] Audit contrast, tap targets, and accessibility basics

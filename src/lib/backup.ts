@@ -77,7 +77,14 @@ export function parseBackupPayload(rawText: string): BackupPayload {
 
   const items = parsed.items.filter(isFreezerItemRecord)
 
-  if (items.length !== parsed.items.length) {
+  const ids = new Set(items.map((item) => item.id))
+
+  if (
+    typeof parsed.itemCount !== 'number' ||
+    items.length !== parsed.items.length ||
+    ids.size !== items.length ||
+    parsed.itemCount !== items.length
+  ) {
     throw new Error('invalid_items')
   }
 

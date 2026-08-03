@@ -23,6 +23,13 @@ const resources = {
         saveChanges: 'Save changes',
         takeOut: 'Take out',
         restore: 'Restore',
+        undo: 'Undo',
+      },
+      storage: {
+        errors: {
+          load: 'Could not read local freezer data. Try again.',
+          save: 'Could not save the change locally. Check storage and try again.',
+        },
       },
       edit: {
         eyebrow: 'Item details',
@@ -146,6 +153,7 @@ const resources = {
         searchPlaceholder: 'Search by type, cut, note, or quantity',
         emptyTitle: 'Nothing matched the current search.',
         emptyCopy: 'Add your first pack or loosen the filters.',
+        takeOutSaved: 'Item taken out.',
       },
       history: {
         eyebrow: 'Taken-out history',
@@ -292,6 +300,13 @@ const resources = {
         saveChanges: 'Zapisz zmiany',
         takeOut: 'Wyjmij',
         restore: 'Przywróć',
+        undo: 'Cofnij',
+      },
+      storage: {
+        errors: {
+          load: 'Nie udało się odczytać lokalnych danych. Spróbuj ponownie.',
+          save: 'Nie udało się lokalnie zapisać zmiany. Sprawdź pamięć i spróbuj ponownie.',
+        },
       },
       edit: {
         eyebrow: 'Szczegóły produktu',
@@ -419,6 +434,7 @@ const resources = {
         searchPlaceholder: 'Szukaj po typie, części, notatce albo ilości',
         emptyTitle: 'Nic nie pasuje do aktualnego wyszukiwania.',
         emptyCopy: 'Dodaj pierwszy pakunek albo poluzuj filtry.',
+        takeOutSaved: 'Produkt wyjęty.',
       },
       history: {
         eyebrow: 'Historia wyjętych rzeczy',
