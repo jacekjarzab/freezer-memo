@@ -1083,6 +1083,27 @@
     overscroll-behavior: contain;
   }
 
+  .app-shell--add-open .step-shell {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 6.5rem);
+  }
+
+  .app-shell--add-open .add-flow-panel .panel-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin-top: 0;
+    padding-top: 0.75rem;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.25rem);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(227, 238, 241, 0),
+        rgba(227, 238, 241, 0.88) 18%,
+        rgba(227, 238, 241, 0.98)
+      );
+    backdrop-filter: blur(10px);
+  }
+
   .app-shell--add-open .add-flow-header {
     flex-direction: row;
     align-items: flex-start;

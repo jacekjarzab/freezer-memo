@@ -6,6 +6,7 @@
 - Added freezer location editing and a location badge on inventory cards.
 - Added IndexedDB schema v3 and backup import normalization so older items without a freezer location default to `Home`.
 - Moved `Pinned presets` and `Quick add again` from the home screen into add step 1 to keep the landing view cleaner and more search-first.
+- Fixed the mobile add-flow footer so sticky actions no longer overlap step 1 content.
 
 ## v1.2 - 2026-08-03
 
