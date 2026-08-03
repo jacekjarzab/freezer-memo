@@ -26,13 +26,23 @@ import {
   importBackupPayload,
   parseBackupPayload,
 } from './lib/backup';
-import { db, type FreezerItemRecord, type QuantityType } from './lib/db';
+import {
+  db,
+  type FreezerItemRecord,
+  type PresetRecord,
+  type QuantityType,
+} from './lib/db';
 import { formatQuantity } from './lib/format';
 import {
   filterAndSortInventory,
   type InventoryMode,
   type SortOption,
 } from './lib/inventory';
+import {
+  hasDuplicatePresetCombination,
+  presetToDraft,
+  sortPresets,
+} from './lib/presets';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -101,6 +111,7 @@ function App() {
   const [isOfflineReady, setIsOfflineReady] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [operationNotice, setOperationNotice] = useState<string | null>(null);
+  const [presetNotice, setPresetNotice] = useState<string | null>(null);
   const [pendingUndoItemId, setPendingUndoItemId] = useState<string | null>(
     null,
   );
@@ -114,10 +125,14 @@ function App() {
     [],
     [],
   );
+  const presets = useLiveQuery(async () => db.presets.toArray(), [], []);
+  const sortedPresets = useMemo(() => sortPresets(presets ?? []), [presets]);
   const recentItems = useMemo(() => {
     const seen = new Set<string>();
     return (items ?? [])
       .filter((item) => {
+        if (hasDuplicatePresetCombination(presets ?? [], item)) return false;
+
         const key = [
           item.categoryKey,
           item.cutKey,
@@ -130,7 +145,7 @@ function App() {
         return true;
       })
       .slice(0, 4);
-  }, [items]);
+  }, [items, presets]);
   const filteredItems = useMemo(
     () =>
       filterAndSortInventory(items ?? [], {
@@ -379,6 +394,65 @@ function App() {
       setOperationNotice(t('storage.errors.save'));
     }
   }
+  async function handlePinPreset(item: FreezerItemRecord) {
+    const now = new Date().toISOString();
+    const candidate = {
+      categoryKey: item.categoryKey,
+      cutKey: item.cutKey,
+      quantityType: item.quantityType,
+      quantityValue: item.quantityValue,
+      quantityUnit: item.quantityUnit,
+    };
+
+    try {
+      await db.transaction('rw', db.presets, async () => {
+        const existingPresets = await db.presets.toArray();
+        if (hasDuplicatePresetCombination(existingPresets, candidate)) {
+          throw new Error('duplicate_preset');
+        }
+
+        await db.presets.add({
+          id: crypto.randomUUID(),
+          ...candidate,
+          label: '',
+          lastUsedAt: null,
+          useCount: 0,
+          createdAt: now,
+          updatedAt: now,
+        });
+      });
+      setPresetNotice(t('presets.saved'));
+    } catch (error) {
+      setPresetNotice(
+        error instanceof Error && error.message === 'duplicate_preset'
+          ? t('presets.duplicate')
+          : t('storage.errors.save'),
+      );
+    }
+  }
+  async function handleUnpinPreset(preset: PresetRecord) {
+    try {
+      await db.presets.delete(preset.id);
+      setPresetNotice(t('presets.removed'));
+    } catch {
+      setPresetNotice(t('storage.errors.save'));
+    }
+  }
+  async function handleUsePreset(preset: PresetRecord) {
+    try {
+      const now = new Date().toISOString();
+      const updated = await db.presets.update(preset.id, {
+        lastUsedAt: now,
+        useCount: preset.useCount + 1,
+        updatedAt: now,
+      });
+      if (!updated) throw new Error('missing_preset');
+      setPresetNotice(t('presets.used'));
+      openAddFlow(presetToDraft(preset), 'quantityValue');
+    } catch {
+      setPresetNotice(t('storage.errors.save'));
+    }
+  }
   const applyRecent = (item: FreezerItemRecord) =>
     openAddFlow(
       {
@@ -463,9 +537,12 @@ function App() {
     } catch (error) {
       const key =
         error instanceof Error &&
-        ['invalid_json', 'invalid_shape', 'invalid_items'].includes(
-          error.message,
-        )
+        [
+          'invalid_json',
+          'invalid_shape',
+          'invalid_items',
+          'invalid_presets',
+        ].includes(error.message)
           ? `backup.errors.${error.message}`
           : 'backup.errors.generic';
       setBackupNoticeTone('error');
@@ -591,6 +668,11 @@ function App() {
           {operationNotice}
         </p>
       ) : null}
+      {presetNotice ? (
+        <p className="backup-notice success" role="status">
+          {presetNotice}
+        </p>
+      ) : null}
       {pendingUndoItemId ? (
         <div className="backup-notice success undo-notice" role="status">
           <span>{t('inventory.takeOutSaved')}</span>
@@ -658,11 +740,15 @@ function App() {
         activeCategoryFilter={activeCategoryFilter}
         filteredItems={filteredItems}
         inventoryMode={inventoryMode}
+        pinnedPresets={sortedPresets}
         recentItems={recentItems}
         search={search}
         sortOption={sortOption}
         applyRecent={applyRecent}
+        handlePinPreset={(item) => void handlePinPreset(item)}
         handleTakeOut={(item) => void handleTakeOut(item)}
+        handleUnpinPreset={(preset) => void handleUnpinPreset(preset)}
+        handleUsePreset={(preset) => void handleUsePreset(preset)}
         openEditPanel={openEditPanel}
         setActiveCategoryFilter={(value) =>
           setActiveCategoryFilter(value as CategoryKey | 'all')

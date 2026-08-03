@@ -871,6 +871,14 @@
   gap: 0.4rem;
 }
 
+.quick-add-main {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0;
+  background: transparent;
+  text-align: left;
+}
+
 .inventory-list {
   margin-top: 1rem;
 }

@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
 import { CATEGORY_KEYS } from '../data/catalog';
-import type { FreezerItemRecord } from '../lib/db';
+import type { FreezerItemRecord, PresetRecord } from '../lib/db';
 import { formatFrozenDate, formatQuantity } from '../lib/format';
 import type { InventoryMode, SortOption } from '../lib/inventory';
 import { CategoryIcon } from './CategoryIcon';
@@ -9,11 +9,15 @@ interface InventoryPanelProps {
   activeCategoryFilter: string;
   filteredItems: FreezerItemRecord[];
   inventoryMode: InventoryMode;
+  pinnedPresets: PresetRecord[];
   recentItems: FreezerItemRecord[];
   search: string;
   sortOption: SortOption;
   applyRecent: (item: FreezerItemRecord) => void;
+  handlePinPreset: (item: FreezerItemRecord) => void;
   handleTakeOut: (item: FreezerItemRecord) => void;
+  handleUnpinPreset: (preset: PresetRecord) => void;
+  handleUsePreset: (preset: PresetRecord) => void;
   openEditPanel: (item: FreezerItemRecord) => void;
   setActiveCategoryFilter: (value: string) => void;
   setInventoryMode: (value: InventoryMode) => void;
@@ -27,11 +31,15 @@ export function InventoryPanel({
   activeCategoryFilter,
   filteredItems,
   inventoryMode,
+  pinnedPresets,
   recentItems,
   search,
   sortOption,
   applyRecent,
+  handlePinPreset,
   handleTakeOut,
+  handleUnpinPreset,
+  handleUsePreset,
   openEditPanel,
   setActiveCategoryFilter,
   setInventoryMode,
@@ -144,26 +152,83 @@ export function InventoryPanel({
           </select>
         </div>
       </div>
+      <div className="quick-add-section">
+        <p className="section-label">{t('presets.title')}</p>
+        {pinnedPresets.length === 0 ? (
+          <p className="panel-copy">{t('presets.empty')}</p>
+        ) : (
+          <div className="quick-add-grid">
+            {pinnedPresets.map((preset) => (
+              <article className="quick-add-card compact" key={preset.id}>
+                <button
+                  className="quick-add-main"
+                  type="button"
+                  onClick={() => handleUsePreset(preset)}
+                >
+                  <CategoryIcon
+                    className="quick-add-icon"
+                    category={preset.categoryKey}
+                  />
+                  <strong>
+                    {preset.label ||
+                      t(`catalog.cuts.${preset.categoryKey}.${preset.cutKey}`)}
+                  </strong>
+                  <span>
+                    {formatQuantity(
+                      {
+                        ...preset,
+                        status: 'in_freezer',
+                        notes: '',
+                        frozenAt: preset.createdAt,
+                        takenOutAt: null,
+                      },
+                      t,
+                    )}
+                  </span>
+                </button>
+                <button
+                  className="ghost-button small-button"
+                  type="button"
+                  onClick={() => handleUnpinPreset(preset)}
+                >
+                  {t('actions.unpin')}
+                </button>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
       {inventoryMode === 'current' && recentItems.length > 0 ? (
         <div className="quick-add-section">
           <p className="section-label">{t('recent.title')}</p>
           <div className="quick-add-grid">
             {recentItems.map((item) => (
-              <button
+              <article
                 className="quick-add-card compact"
                 key={`recent-${item.id}`}
-                type="button"
-                onClick={() => applyRecent(item)}
               >
-                <CategoryIcon
-                  className="quick-add-icon"
-                  category={item.categoryKey}
-                />
-                <strong>
-                  {t(`catalog.cuts.${item.categoryKey}.${item.cutKey}`)}
-                </strong>
-                <span>{formatQuantity(item, t)}</span>
-              </button>
+                <button
+                  className="quick-add-main"
+                  type="button"
+                  onClick={() => applyRecent(item)}
+                >
+                  <CategoryIcon
+                    className="quick-add-icon"
+                    category={item.categoryKey}
+                  />
+                  <strong>
+                    {t(`catalog.cuts.${item.categoryKey}.${item.cutKey}`)}
+                  </strong>
+                  <span>{formatQuantity(item, t)}</span>
+                </button>
+                <button
+                  className="ghost-button small-button"
+                  type="button"
+                  onClick={() => handlePinPreset(item)}
+                >
+                  {t('actions.pin')}
+                </button>
+              </article>
             ))}
           </div>
         </div>

@@ -25,7 +25,7 @@ Status legend:
 - [x] Polish as secondary language from day one
 - [x] Default categories include lamb and wild boar
 - [ ] Decide whether history is visible by default or hidden behind filter/view
-- [ ] Decide whether presets stay auto-generated only or can be pinned manually in MVP
+- [x] Decide whether presets stay auto-generated only or can be pinned manually in MVP
 
 ## App Foundation
 
@@ -65,8 +65,8 @@ Status legend:
 
 - [x] Store items as distinct records
 - [x] Store category/cut as stable keys
-- [ ] Add schema support for presets/favorites
-- [ ] Add migration plan for future schema changes
+- [x] Add schema support for presets/favorites
+- [x] Add migration plan for future schema changes
 - [x] Add backup export to JSON
 - [x] Add restore from JSON
 - [x] Validate import payload and handle bad files safely
@@ -113,7 +113,7 @@ Status legend:
 
 ## Nice-to-Have After MVP
 
-- [ ] Pinned presets / favorites
+- [x] Pinned presets / favorites
 - [ ] Freezer drawer / compartment field
 - [ ] Bulk clear history
 - [ ] Age indicators / freezer duration

@@ -1,5 +1,5 @@
-import i18n from 'i18next'
-import { initReactI18next } from 'react-i18next'
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
 
 const resources = {
   en: {
@@ -24,6 +24,9 @@ const resources = {
         takeOut: 'Take out',
         restore: 'Restore',
         undo: 'Undo',
+        pin: 'Pin',
+        unpin: 'Unpin',
+        use: 'Use',
       },
       storage: {
         errors: {
@@ -34,7 +37,8 @@ const resources = {
       edit: {
         eyebrow: 'Item details',
         title: 'Review and correct this item',
-        subtitle: 'Fix labels, quantity, or notes without removing the item first.',
+        subtitle:
+          'Fix labels, quantity, or notes without removing the item first.',
         previewLabel: 'Updated preview',
         saved: 'Changes saved locally.',
         errors: {
@@ -47,10 +51,13 @@ const resources = {
       pwa: {
         eyebrow: 'PWA status',
         title: 'Keep the app ready on your phone',
-        installHint: 'Install it to your home screen for faster access and a more native feel.',
-        offlineReady: 'Offline cache is ready. The app shell should work without network now.',
+        installHint:
+          'Install it to your home screen for faster access and a more native feel.',
+        offlineReady:
+          'Offline cache is ready. The app shell should work without network now.',
         installedState: 'Installed mode is active on this device.',
-        updateAvailable: 'A newer version is ready. Refresh to load the latest app shell.',
+        updateAvailable:
+          'A newer version is ready. Refresh to load the latest app shell.',
         installButton: 'Install app',
         refreshButton: 'Refresh app',
         cachedBadge: 'Offline ready',
@@ -74,7 +81,10 @@ const resources = {
         errors: {
           invalid_json: 'That file is not valid JSON.',
           invalid_shape: 'That backup file does not match the expected format.',
-          invalid_items: 'Some imported items are invalid, so the restore was stopped.',
+          invalid_items:
+            'Some imported items are invalid, so the restore was stopped.',
+          invalid_presets:
+            'Some imported presets are invalid, so the restore was stopped.',
           generic: 'Import failed. Try another backup file.',
         },
       },
@@ -121,7 +131,8 @@ const resources = {
           },
           cut: {
             title: 'Pick the cut or part',
-            description: 'Show the closest real-life label you would look for later.',
+            description:
+              'Show the closest real-life label you would look for later.',
           },
           quantityType: {
             title: 'How do you count it?',
@@ -129,11 +140,13 @@ const resources = {
           },
           quantityValue: {
             title: 'Set the amount',
-            description: 'Keep this dead simple so adding stock stays painless.',
+            description:
+              'Keep this dead simple so adding stock stays painless.',
           },
           notes: {
             title: 'Add an optional note',
-            description: 'Use notes only when they help future-you search faster.',
+            description:
+              'Use notes only when they help future-you search faster.',
           },
         },
       },
@@ -161,12 +174,22 @@ const resources = {
         modeLabel: 'Inventory view',
         currentView: 'Current',
         historyView: 'History',
-        searchPlaceholder: 'Search taken-out items by type, cut, note, or quantity',
+        searchPlaceholder:
+          'Search taken-out items by type, cut, note, or quantity',
         emptyTitle: 'No taken-out items matched this view.',
         emptyCopy: 'Use the freezer a bit or loosen the filters.',
       },
       recent: {
         title: 'Quick add again',
+      },
+      presets: {
+        title: 'Pinned presets',
+        empty: 'Pin a frequent combination to keep it here.',
+        pinned: 'Pinned locally',
+        duplicate: 'That combination is already pinned.',
+        saved: 'Preset pinned locally.',
+        removed: 'Preset unpinned.',
+        used: 'Preset ready to add.',
       },
       filters: {
         allCategories: 'All categories',
@@ -283,7 +306,8 @@ const resources = {
     translation: {
       hero: {
         eyebrow: 'Offline-first tracker do zamrażarki',
-        title: 'Wiesz, co jest w zamrażarce, zanim zaczniesz gotować albo zakupy.',
+        title:
+          'Wiesz, co jest w zamrażarce, zanim zaczniesz gotować albo zakupy.',
         subtitle:
           'Szybkie dodawanie, przeszukiwalny stan i zero pieprzenia się z kontem w MVP.',
       },
@@ -301,6 +325,9 @@ const resources = {
         takeOut: 'Wyjmij',
         restore: 'Przywróć',
         undo: 'Cofnij',
+        pin: 'Przypnij',
+        unpin: 'Odepnij',
+        use: 'Użyj',
       },
       storage: {
         errors: {
@@ -311,7 +338,8 @@ const resources = {
       edit: {
         eyebrow: 'Szczegóły produktu',
         title: 'Sprawdź i popraw ten wpis',
-        subtitle: 'Popraw etykiety, ilość albo notatkę bez wyjmowania produktu.',
+        subtitle:
+          'Popraw etykiety, ilość albo notatkę bez wyjmowania produktu.',
         previewLabel: 'Podgląd po zmianach',
         saved: 'Zmiany zapisane lokalnie.',
         errors: {
@@ -324,10 +352,14 @@ const resources = {
       pwa: {
         eyebrow: 'Status PWA',
         title: 'Miej apkę gotową na telefonie',
-        installHint: 'Dodaj ją do ekranu głównego, żeby odpalała się szybciej i bardziej jak natywna apka.',
-        offlineReady: 'Cache offline jest gotowy. Shell aplikacji powinien już działać bez sieci.',
-        installedState: 'Tryb zainstalowanej aplikacji jest aktywny na tym urządzeniu.',
-        updateAvailable: 'Czeka nowsza wersja. Odśwież, żeby wczytać aktualny shell aplikacji.',
+        installHint:
+          'Dodaj ją do ekranu głównego, żeby odpalała się szybciej i bardziej jak natywna apka.',
+        offlineReady:
+          'Cache offline jest gotowy. Shell aplikacji powinien już działać bez sieci.',
+        installedState:
+          'Tryb zainstalowanej aplikacji jest aktywny na tym urządzeniu.',
+        updateAvailable:
+          'Czeka nowsza wersja. Odśwież, żeby wczytać aktualny shell aplikacji.',
         installButton: 'Zainstaluj apkę',
         refreshButton: 'Odśwież apkę',
         cachedBadge: 'Offline gotowe',
@@ -336,7 +368,8 @@ const resources = {
       backup: {
         eyebrow: 'Backup i przywracanie',
         title: 'Trzymaj kopię JSON danych z zamrażarki',
-        subtitle: 'Wyeksportuj wszystko lokalnie albo przywróć dane z pliku backupu.',
+        subtitle:
+          'Wyeksportuj wszystko lokalnie albo przywróć dane z pliku backupu.',
         exportButton: 'Eksportuj backup JSON',
         importButton: 'Importuj backup',
         replaceTitle: 'Import nadpisuje lokalny stan',
@@ -355,7 +388,10 @@ const resources = {
         errors: {
           invalid_json: 'Ten plik nie jest poprawnym JSON-em.',
           invalid_shape: 'Ten backup nie ma oczekiwanego formatu.',
-          invalid_items: 'Część pozycji w backupie jest niepoprawna, więc import został zatrzymany.',
+          invalid_items:
+            'Część pozycji w backupie jest niepoprawna, więc import został zatrzymany.',
+          invalid_presets:
+            'Część przypiętych zestawów w backupie jest niepoprawna, więc import został zatrzymany.',
           generic: 'Import się wywalił. Spróbuj z innym plikiem backupu.',
         },
       },
@@ -373,7 +409,8 @@ const resources = {
         stepCounter: 'Krok {{current}} z {{total}}',
         stepDone: 'Zapisane',
         previewLabel: 'Aktualny wybór',
-        quantityPreviewHelp: 'Ustal ilość, zanim przejdziesz do końcowego zapisu.',
+        quantityPreviewHelp:
+          'Ustal ilość, zanim przejdziesz do końcowego zapisu.',
         reviewLabel: 'Gotowe do zapisu',
         cutHelper: 'Kliknij najbardziej pasujący wariant',
         successBadge: 'Zapisano offline',
@@ -406,15 +443,18 @@ const resources = {
           },
           quantityType: {
             title: 'Jak to liczysz?',
-            description: 'Wybierz to, co najlepiej pasuje do opakowania w zamrażarce.',
+            description:
+              'Wybierz to, co najlepiej pasuje do opakowania w zamrażarce.',
           },
           quantityValue: {
             title: 'Ustaw ilość',
-            description: 'Ma być banalnie proste, żeby dodawanie nie wkurwiało.',
+            description:
+              'Ma być banalnie proste, żeby dodawanie nie wkurwiało.',
           },
           notes: {
             title: 'Dodaj opcjonalną notatkę',
-            description: 'Notatki tylko wtedy, gdy pomogą szybciej to potem znaleźć.',
+            description:
+              'Notatki tylko wtedy, gdy pomogą szybciej to potem znaleźć.',
           },
         },
       },
@@ -442,12 +482,22 @@ const resources = {
         modeLabel: 'Widok listy',
         currentView: 'Aktualne',
         historyView: 'Historia',
-        searchPlaceholder: 'Szukaj wyjętych rzeczy po typie, części, notatce albo ilości',
+        searchPlaceholder:
+          'Szukaj wyjętych rzeczy po typie, części, notatce albo ilości',
         emptyTitle: 'Żadne wyjęte produkty nie pasują do tego widoku.',
         emptyCopy: 'Najpierw coś wyjmij albo poluzuj filtry.',
       },
       recent: {
         title: 'Dodaj ponownie',
+      },
+      presets: {
+        title: 'Przypięte zestawy',
+        empty: 'Przypnij często używaną kombinację, żeby mieć ją tutaj.',
+        pinned: 'Przypięte lokalnie',
+        duplicate: 'Ta kombinacja jest już przypięta.',
+        saved: 'Zestaw przypięty lokalnie.',
+        removed: 'Zestaw odpięty.',
+        used: 'Zestaw gotowy do dodania.',
       },
       filters: {
         allCategories: 'Wszystkie kategorie',
@@ -564,9 +614,9 @@ const resources = {
       },
     },
   },
-} as const
+} as const;
 
-const savedLanguage = window.localStorage.getItem('freezer-memo-language')
+const savedLanguage = window.localStorage.getItem('freezer-memo-language');
 
 void i18n.use(initReactI18next).init({
   resources,
@@ -575,6 +625,6 @@ void i18n.use(initReactI18next).init({
   interpolation: {
     escapeValue: false,
   },
-})
+});
 
-export default i18n
+export default i18n;
