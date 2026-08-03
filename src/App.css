@@ -636,6 +636,14 @@
   flex: 1;
 }
 
+.add-start-content {
+  gap: 1rem;
+}
+
+.add-flow-shortcuts {
+  margin-top: 0;
+}
+
 .backup-panel,
 .backup-actions,
 .edit-panel,

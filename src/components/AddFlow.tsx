@@ -4,6 +4,7 @@ import { CategoryIcon } from './CategoryIcon';
 import type {
   FreezerItemRecord,
   FreezerKey,
+  PresetRecord,
   QuantityType,
 } from '../lib/db';
 import { formatQuantity } from '../lib/format';
@@ -16,17 +17,23 @@ interface AddFlowProps {
   currentCuts: string[];
   draft: AddDraft;
   freezerKeys: FreezerKey[];
+  pinnedPresets: PresetRecord[];
   parsedQuantityValue: number;
   progressValue: number;
   quantityTypes: QuantityType[];
+  recentItems: FreezerItemRecord[];
   weightUnits: readonly string[];
+  applyRecent: (item: FreezerItemRecord) => void;
   canAdvanceFromStep: (step: AddStep) => boolean;
   closeAddFlow: () => void;
   handleAddSameAgain: () => void;
   handleBackStep: () => void;
   handleCategorySelect: (category: CategoryKey) => void;
   handleNextStep: () => void;
+  handlePinPreset: (item: FreezerItemRecord) => void;
   handleQuantityTypeSelect: (type: QuantityType) => void;
+  handleUnpinPreset: (preset: PresetRecord) => void;
+  handleUsePreset: (preset: PresetRecord) => void;
   t: TFunction;
   updateDraft: (patch: Partial<AddDraft>) => void;
 }
@@ -38,17 +45,23 @@ export function AddFlow({
   currentCuts,
   draft,
   freezerKeys,
+  pinnedPresets,
   parsedQuantityValue,
   progressValue,
   quantityTypes,
+  recentItems,
   weightUnits,
+  applyRecent,
   canAdvanceFromStep,
   closeAddFlow,
   handleAddSameAgain,
   handleBackStep,
   handleCategorySelect,
   handleNextStep,
+  handlePinPreset,
   handleQuantityTypeSelect,
+  handleUnpinPreset,
+  handleUsePreset,
   t,
   updateDraft,
 }: AddFlowProps) {
@@ -106,24 +119,114 @@ export function AddFlow({
             </p>
           </div>
           {addScreen === 'category' ? (
-            <div className="option-grid tight-option-grid">
-              {CATEGORY_KEYS.map((key) => (
-                <button
-                  className={
-                    draft.categoryKey === key
-                      ? 'option-card active'
-                      : 'option-card'
-                  }
-                  key={key}
-                  type="button"
-                  onClick={() => handleCategorySelect(key)}
-                >
-                  <span className="option-card-line">
-                    <CategoryIcon className="option-card-icon" category={key} />
-                    <strong>{t(`catalog.categories.${key}`)}</strong>
-                  </span>
-                </button>
-              ))}
+            <div className="step-content add-start-content">
+              <div className="option-grid tight-option-grid">
+                {CATEGORY_KEYS.map((key) => (
+                  <button
+                    className={
+                      draft.categoryKey === key
+                        ? 'option-card active'
+                        : 'option-card'
+                    }
+                    key={key}
+                    type="button"
+                    onClick={() => handleCategorySelect(key)}
+                  >
+                    <span className="option-card-line">
+                      <CategoryIcon className="option-card-icon" category={key} />
+                      <strong>{t(`catalog.categories.${key}`)}</strong>
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <div className="quick-add-section add-flow-shortcuts">
+                <p className="section-label">{t('presets.title')}</p>
+                {pinnedPresets.length === 0 ? (
+                  <p className="panel-copy">{t('presets.empty')}</p>
+                ) : (
+                  <div className="quick-add-grid">
+                    {pinnedPresets.map((preset) => (
+                      <article className="quick-add-card compact" key={preset.id}>
+                        <button
+                          className="quick-add-main"
+                          type="button"
+                          onClick={() => handleUsePreset(preset)}
+                        >
+                          <CategoryIcon
+                            className="quick-add-icon"
+                            category={preset.categoryKey}
+                          />
+                          <strong>
+                            {preset.label ||
+                              t(
+                                `catalog.cuts.${preset.categoryKey}.${preset.cutKey}`,
+                              )}
+                          </strong>
+                          <span>
+                            {formatQuantity(
+                              {
+                                ...preset,
+                                status: 'in_freezer',
+                                freezerKey: 'home',
+                                notes: '',
+                                frozenAt: preset.createdAt,
+                                takenOutAt: null,
+                              },
+                              t,
+                            )}
+                          </span>
+                        </button>
+                        <button
+                          aria-label={t('actions.unpin')}
+                          className="quick-add-action"
+                          title={t('actions.unpin')}
+                          type="button"
+                          onClick={() => handleUnpinPreset(preset)}
+                        >
+                          <span aria-hidden="true">♥</span>
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {recentItems.length > 0 ? (
+                <div className="quick-add-section add-flow-shortcuts">
+                  <p className="section-label">{t('recent.title')}</p>
+                  <div className="quick-add-grid">
+                    {recentItems.map((item) => (
+                      <article
+                        className="quick-add-card compact"
+                        key={`recent-${item.id}`}
+                      >
+                        <button
+                          className="quick-add-main"
+                          type="button"
+                          onClick={() => applyRecent(item)}
+                        >
+                          <CategoryIcon
+                            className="quick-add-icon"
+                            category={item.categoryKey}
+                          />
+                          <strong>
+                            {t(`catalog.cuts.${item.categoryKey}.${item.cutKey}`)}
+                          </strong>
+                          <span>{formatQuantity(item, t)}</span>
+                        </button>
+                        <button
+                          aria-label={t('actions.pin')}
+                          className="quick-add-action"
+                          title={t('actions.pin')}
+                          type="button"
+                          onClick={() => handlePinPreset(item)}
+                        >
+                          <span aria-hidden="true">♡</span>
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
           {addScreen === 'cut' ? (

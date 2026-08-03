@@ -731,12 +731,15 @@ function App() {
         <AddFlow
           addScreen={addScreen}
           addSteps={addSteps}
+          applyRecent={applyRecent}
           currentStepIndex={currentStepIndex}
           currentCuts={currentCuts}
           draft={draft}
           parsedQuantityValue={parsedQuantityValue}
+          pinnedPresets={sortedPresets}
           progressValue={progressValue}
           quantityTypes={quantityTypes}
+          recentItems={recentItems}
           weightUnits={weightUnits}
           canAdvanceFromStep={canAdvanceFromStep}
           closeAddFlow={closeAddFlow}
@@ -745,7 +748,10 @@ function App() {
           handleCategorySelect={handleCategorySelect}
           freezerKeys={freezerKeys}
           handleNextStep={handleNextStep}
+          handlePinPreset={(item) => void handlePinPreset(item)}
           handleQuantityTypeSelect={handleQuantityTypeSelect}
+          handleUnpinPreset={(preset) => void handleUnpinPreset(preset)}
+          handleUsePreset={(preset) => void handleUsePreset(preset)}
           t={t}
           updateDraft={updateDraft}
         />
@@ -764,15 +770,9 @@ function App() {
         activeCategoryFilter={activeCategoryFilter}
         filteredItems={filteredItems}
         inventoryMode={inventoryMode}
-        pinnedPresets={sortedPresets}
-        recentItems={recentItems}
         search={search}
         sortOption={sortOption}
-        applyRecent={applyRecent}
-        handlePinPreset={(item) => void handlePinPreset(item)}
         handleTakeOut={(item) => void handleTakeOut(item)}
-        handleUnpinPreset={(preset) => void handleUnpinPreset(preset)}
-        handleUsePreset={(preset) => void handleUsePreset(preset)}
         openEditPanel={openEditPanel}
         setActiveCategoryFilter={(value) =>
           setActiveCategoryFilter(value as CategoryKey | 'all')
