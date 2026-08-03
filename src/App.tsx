@@ -57,7 +57,7 @@ const addSteps: AddStep[] = [
 ];
 const quantityTypes: QuantityType[] = ['weight', 'packs', 'pieces'];
 const weightUnits = ['kg', 'g'] as const;
-const appVersion = 'v1.1';
+const appVersion = 'v1.2';
 function createInitialDraft(): AddDraft {
   return {
     categoryKey: 'chicken',
