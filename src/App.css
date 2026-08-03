@@ -605,7 +605,8 @@
 }
 
 .quick-add-card.compact {
-  padding: 0.7rem 0.8rem;
+  position: relative;
+  padding: 0.7rem 2.65rem 0.7rem 0.8rem;
   gap: 0.2rem;
 }
 
@@ -802,6 +803,19 @@
 
 .sort-group {
   max-width: 18rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.sort-group label {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.sort-group select {
+  min-width: 0;
+  padding-block: 0.7rem;
 }
 
 .backup-card,
@@ -877,6 +891,41 @@
   padding: 0;
   background: transparent;
   text-align: left;
+}
+
+.quick-add-action {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  width: 2.35rem;
+  height: 2.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  padding: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.55rem;
+  line-height: 1;
+  transition:
+    transform 120ms ease,
+    background 120ms ease,
+    color 120ms ease;
+}
+
+.quick-add-action:hover,
+.quick-add-action:focus-visible {
+  transform: translateY(-1px);
+  background: rgba(18, 50, 68, 0.08);
+}
+
+.quick-add-action:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .inventory-list {
@@ -1140,6 +1189,10 @@
 
   .quick-add-card {
     padding: 0.65rem 0.72rem;
+  }
+
+  .quick-add-card.compact {
+    padding: 0.65rem 2.4rem 0.65rem 0.72rem;
   }
 
   .quick-add-card.compact strong {

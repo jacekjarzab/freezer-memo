@@ -187,11 +187,13 @@ export function InventoryPanel({
                   </span>
                 </button>
                 <button
-                  className="ghost-button small-button"
+                  aria-label={t('actions.unpin')}
+                  className="quick-add-action"
+                  title={t('actions.unpin')}
                   type="button"
                   onClick={() => handleUnpinPreset(preset)}
                 >
-                  {t('actions.unpin')}
+                  <span aria-hidden="true">♥</span>
                 </button>
               </article>
             ))}
@@ -222,11 +224,13 @@ export function InventoryPanel({
                   <span>{formatQuantity(item, t)}</span>
                 </button>
                 <button
-                  className="ghost-button small-button"
+                  aria-label={t('actions.pin')}
+                  className="quick-add-action"
+                  title={t('actions.pin')}
                   type="button"
                   onClick={() => handlePinPreset(item)}
                 >
-                  {t('actions.pin')}
+                  <span aria-hidden="true">♡</span>
                 </button>
               </article>
             ))}
