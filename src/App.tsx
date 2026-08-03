@@ -112,6 +112,9 @@ function App() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [operationNotice, setOperationNotice] = useState<string | null>(null);
   const [presetNotice, setPresetNotice] = useState<string | null>(null);
+  const [presetNoticeTone, setPresetNoticeTone] = useState<'success' | 'error'>(
+    'success',
+  );
   const [pendingUndoItemId, setPendingUndoItemId] = useState<string | null>(
     null,
   );
@@ -421,8 +424,10 @@ function App() {
           updatedAt: now,
         });
       });
+      setPresetNoticeTone('success');
       setPresetNotice(t('presets.saved'));
     } catch (error) {
+      setPresetNoticeTone('error');
       setPresetNotice(
         error instanceof Error && error.message === 'duplicate_preset'
           ? t('presets.duplicate')
@@ -433,8 +438,10 @@ function App() {
   async function handleUnpinPreset(preset: PresetRecord) {
     try {
       await db.presets.delete(preset.id);
+      setPresetNoticeTone('success');
       setPresetNotice(t('presets.removed'));
     } catch {
+      setPresetNoticeTone('error');
       setPresetNotice(t('storage.errors.save'));
     }
   }
@@ -447,9 +454,11 @@ function App() {
         updatedAt: now,
       });
       if (!updated) throw new Error('missing_preset');
+      setPresetNoticeTone('success');
       setPresetNotice(t('presets.used'));
       openAddFlow(presetToDraft(preset), 'quantityValue');
     } catch {
+      setPresetNoticeTone('error');
       setPresetNotice(t('storage.errors.save'));
     }
   }
@@ -669,7 +678,14 @@ function App() {
         </p>
       ) : null}
       {presetNotice ? (
-        <p className="backup-notice success" role="status">
+        <p
+          className={
+            presetNoticeTone === 'success'
+              ? 'backup-notice success'
+              : 'backup-notice error'
+          }
+          role={presetNoticeTone === 'success' ? 'status' : 'alert'}
+        >
           {presetNotice}
         </p>
       ) : null}

@@ -104,4 +104,12 @@ describe('parseBackupPayload', () => {
       ),
     ).toThrow('invalid_presets');
   });
+
+  it('rejects preset records with unknown category keys', () => {
+    const invalidPreset = { ...validPreset, categoryKey: 'not-a-category' };
+
+    expect(() =>
+      parseBackupPayload(backupV2([validItem], [invalidPreset])),
+    ).toThrow('invalid_presets');
+  });
 });

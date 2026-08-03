@@ -55,7 +55,9 @@ function isPresetRecord(value: unknown): value is PresetRecord {
 
   return (
     typeof value.id === 'string' &&
-    typeof value.categoryKey === 'string' &&
+    CATEGORY_KEYS.includes(
+      value.categoryKey as (typeof CATEGORY_KEYS)[number],
+    ) &&
     typeof value.cutKey === 'string' &&
     VALID_QUANTITY_TYPES.includes(
       value.quantityType as (typeof VALID_QUANTITY_TYPES)[number],
