@@ -178,7 +178,8 @@
 
 .step-shell,
 .step-content,
-.success-shell {
+.success-shell,
+.step-main {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -186,6 +187,10 @@
 }
 
 .step-shell {
+  flex: 1;
+}
+
+.step-main {
   flex: 1;
 }
 
@@ -1073,27 +1078,38 @@
     inset: 0;
     z-index: 30;
     width: 100%;
-    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
     margin: 0;
     border-radius: 0;
     box-shadow: none;
     background: linear-gradient(180deg, rgba(238, 245, 247, 0.98), rgba(227, 238, 241, 0.99));
     padding: 0.75rem 0.75rem calc(env(safe-area-inset-bottom) + 1rem);
-    overflow: auto;
+    overflow: hidden;
     overscroll-behavior: contain;
   }
 
   .app-shell--add-open .step-shell {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 6.5rem);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .app-shell--add-open .step-main {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 8.5rem);
   }
 
   .app-shell--add-open .add-flow-panel .panel-actions {
     position: sticky;
     bottom: 0;
+    flex: 0 0 auto;
     z-index: 2;
     margin-top: 0;
-    padding-top: 0.75rem;
-    padding-bottom: calc(env(safe-area-inset-bottom) + 0.25rem);
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+    padding: 0.75rem 0.75rem calc(env(safe-area-inset-bottom) + 0.25rem);
     background:
       linear-gradient(
         180deg,
