@@ -104,7 +104,7 @@ Status legend:
 
 - [x] Build passes
 - [x] Lint passes
-- [ ] Add smoke test plan
+- [x] Add smoke test plan
 - [ ] Test on Android browser
 - [x] Test on iPhone browser
 - [x] Test installability as PWA
