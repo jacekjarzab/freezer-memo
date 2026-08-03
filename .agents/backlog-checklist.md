@@ -16,7 +16,7 @@ Status legend:
 - [x] Add edit item details and correction flow
 - [x] Add JSON export/import backup
 - [x] Tighten offline/PWA behavior and install UX
-- [ ] Prepare MVP for real-device testing
+- [x] Prepare MVP for real-device testing
 
 ## Product Decisions
 
@@ -24,7 +24,7 @@ Status legend:
 - [x] English as default language
 - [x] Polish as secondary language from day one
 - [x] Default categories include lamb and wild boar
-- [ ] Decide whether history is visible by default or hidden behind filter/view
+- [x] Decide whether history is visible by default or hidden behind filter/view
 - [x] Decide whether presets stay auto-generated only or can be pinned manually in MVP
 
 ## App Foundation
@@ -87,8 +87,8 @@ Status legend:
 - [x] Generate manifest
 - [x] Build offline-capable shell
 - [x] Add explicit offline-ready / installed feedback
-- [ ] Test offline create/search/take-out on mobile
-- [ ] Verify cold-start behavior after first install
+- [x] Test offline create/search/take-out on mobile
+- [x] Verify cold-start behavior after first install
 - [x] Add install prompt UX where supported
 
 ## UX Polish
@@ -106,9 +106,9 @@ Status legend:
 - [x] Lint passes
 - [ ] Add smoke test plan
 - [ ] Test on Android browser
-- [ ] Test on iPhone browser
-- [ ] Test installability as PWA
-- [ ] Test offline after reload
+- [x] Test on iPhone browser
+- [x] Test installability as PWA
+- [x] Test offline after reload
 - [ ] Test with larger sample inventory
 
 ## Nice-to-Have After MVP

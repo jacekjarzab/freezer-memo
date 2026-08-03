@@ -162,7 +162,7 @@ const resources = {
       },
       inventory: {
         eyebrow: 'Search inventory',
-        title: 'Current stock',
+        title: 'Current',
         searchPlaceholder: 'Search by type, cut, note, or quantity',
         emptyTitle: 'Nothing matched the current search.',
         emptyCopy: 'Add your first pack or loosen the filters.',
@@ -170,7 +170,7 @@ const resources = {
       },
       history: {
         eyebrow: 'Taken-out history',
-        title: 'Freezer history',
+        title: 'History',
         modeLabel: 'Inventory view',
         currentView: 'Current',
         historyView: 'History',
