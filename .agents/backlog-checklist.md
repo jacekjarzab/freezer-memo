@@ -34,7 +34,7 @@ Status legend:
 - [x] Add IndexedDB persistence with Dexie
 - [x] Add initial English/Polish translation setup
 - [x] Add starter inventory UI shell
-- [ ] Split app into clearer feature modules/components
+- [x] Split app into clearer feature modules/components
 - [ ] Add app-level empty/loading/error states where needed
 
 ## Guided Add Flow
