@@ -1,7 +1,11 @@
 import type { TFunction } from 'i18next';
 import { CATEGORY_KEYS, type CategoryKey } from '../data/catalog';
 import { CategoryIcon } from './CategoryIcon';
-import type { QuantityType, FreezerItemRecord } from '../lib/db';
+import type {
+  FreezerItemRecord,
+  FreezerKey,
+  QuantityType,
+} from '../lib/db';
 import { formatQuantity } from '../lib/format';
 import type { AddDraft, AddScreen, AddStep } from './view-model';
 
@@ -11,6 +15,7 @@ interface AddFlowProps {
   currentStepIndex: number;
   currentCuts: string[];
   draft: AddDraft;
+  freezerKeys: FreezerKey[];
   parsedQuantityValue: number;
   progressValue: number;
   quantityTypes: QuantityType[];
@@ -32,6 +37,7 @@ export function AddFlow({
   currentStepIndex,
   currentCuts,
   draft,
+  freezerKeys,
   parsedQuantityValue,
   progressValue,
   quantityTypes,
@@ -215,6 +221,25 @@ export function AddFlow({
           {addScreen === 'notes' ? (
             <div className="step-content">
               <div className="field-group">
+                <label>{t('fields.freezer')}</label>
+                <div className="pill-row">
+                  {freezerKeys.map((key) => (
+                    <button
+                      className={
+                        draft.freezerKey === key
+                          ? 'pill-chip active'
+                          : 'pill-chip'
+                      }
+                      key={key}
+                      type="button"
+                      onClick={() => updateDraft({ freezerKey: key })}
+                    >
+                      {t(`freezers.${key}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="field-group">
                 <label htmlFor="notes">{t('fields.notes')}</label>
                 <input
                   id="notes"
@@ -238,6 +263,7 @@ export function AddFlow({
                       status: 'in_freezer',
                       categoryKey: draft.categoryKey,
                       cutKey: draft.cutKey,
+                      freezerKey: draft.freezerKey,
                       quantityType: draft.quantityType,
                       quantityValue: Number.isFinite(parsedQuantityValue)
                         ? parsedQuantityValue
@@ -251,6 +277,9 @@ export function AddFlow({
                     } as FreezerItemRecord,
                     t,
                   )}
+                </p>
+                <p className="review-freezer-label">
+                  {t('fields.freezer')}: {t(`freezers.${draft.freezerKey}`)}
                 </p>
                 {draft.notes ? <p>{draft.notes}</p> : null}
               </article>

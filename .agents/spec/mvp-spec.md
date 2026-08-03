@@ -369,11 +369,11 @@ This keeps the app useful without building auth or sync too early.
 - delayed PWA/offline setup can create architecture rework later
 - mixing translated labels with stored raw strings can make search and catalog maintenance messy
 
-## Open Product Decisions
+## Resolved Product Decisions
 
-- whether to support non-meat freezer items in MVP or keep the scope meat-first
-- whether history should be visible by default or hidden under a separate view
-- whether presets are auto-generated from recent usage only or can also be manually pinned
+- MVP scope stays meat-first
+- taken-out history is available behind a dedicated history view instead of showing by default
+- presets can be pinned manually in MVP, not only auto-generated from recent usage
 
 ## Acceptance Criteria
 

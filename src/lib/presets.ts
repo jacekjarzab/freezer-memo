@@ -37,6 +37,7 @@ export function presetToDraft(preset: PresetRecord) {
   return {
     categoryKey: preset.categoryKey,
     cutKey: preset.cutKey,
+    freezerKey: 'home' as const,
     quantityType: preset.quantityType,
     quantityValue: String(preset.quantityValue),
     quantityUnit: preset.quantityUnit,

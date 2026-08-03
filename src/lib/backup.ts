@@ -1,17 +1,26 @@
 import { CATEGORY_KEYS } from '../data/catalog';
-import { db, type FreezerItemRecord, type PresetRecord } from './db';
+import {
+  db,
+  type FreezerItemRecord,
+  type FreezerKey,
+  type PresetRecord,
+} from './db';
 import { hasDuplicatePresetCombination } from './presets';
 
 const VALID_STATUSES = ['in_freezer', 'taken_out'] as const;
 const VALID_QUANTITY_TYPES = ['weight', 'packs', 'pieces'] as const;
 
 export interface BackupPayload {
-  version: 2;
+  version: 3;
   exportedAt: string;
   itemCount: number;
   items: FreezerItemRecord[];
   presetCount: number;
   presets: PresetRecord[];
+}
+
+function isFreezerKey(value: unknown): value is FreezerKey {
+  return value === 'home' || value === 'basement' || value === 'away';
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -34,6 +43,7 @@ function isFreezerItemRecord(value: unknown): value is FreezerItemRecord {
       value.categoryKey as (typeof CATEGORY_KEYS)[number],
     ) &&
     typeof value.cutKey === 'string' &&
+    isFreezerKey(value.freezerKey) &&
     VALID_QUANTITY_TYPES.includes(
       value.quantityType as (typeof VALID_QUANTITY_TYPES)[number],
     ) &&
@@ -75,11 +85,28 @@ function isPresetRecord(value: unknown): value is PresetRecord {
   );
 }
 
+function normalizeImportedItem(value: unknown): FreezerItemRecord {
+  if (!isRecord(value)) {
+    throw new Error('invalid_items');
+  }
+
+  const normalized: Record<string, unknown> = {
+    ...value,
+    freezerKey: isFreezerKey(value.freezerKey) ? value.freezerKey : 'home',
+  };
+
+  if (!isFreezerItemRecord(normalized)) {
+    throw new Error('invalid_items');
+  }
+
+  return normalized;
+}
+
 function validateItems(items: unknown[]): FreezerItemRecord[] {
-  const validItems = items.filter(isFreezerItemRecord);
+  const validItems = items.map(normalizeImportedItem);
   const ids = new Set(validItems.map((item) => item.id));
 
-  if (validItems.length !== items.length || ids.size !== validItems.length) {
+  if (ids.size !== validItems.length) {
     throw new Error('invalid_items');
   }
 
@@ -110,7 +137,7 @@ export async function createBackupPayload(): Promise<BackupPayload> {
   const presets = await db.presets.toArray();
 
   return {
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
     itemCount: items.length,
     items,
@@ -133,7 +160,7 @@ export function parseBackupPayload(rawText: string): BackupPayload {
   }
 
   if (
-    ![1, 2].includes(parsed.version as number) ||
+    ![1, 2, 3].includes(parsed.version as number) ||
     !Array.isArray(parsed.items)
   ) {
     throw new Error('invalid_shape');
@@ -152,7 +179,7 @@ export function parseBackupPayload(rawText: string): BackupPayload {
 
   const items = validateItems(parsed.items);
   if (
-    parsed.version === 2 &&
+    [2, 3].includes(parsed.version as number) &&
     (!Array.isArray(parsed.presets) ||
       typeof parsed.presetCount !== 'number' ||
       parsed.presetCount !== parsed.presets.length)
@@ -161,11 +188,13 @@ export function parseBackupPayload(rawText: string): BackupPayload {
   }
 
   const rawPresets: unknown[] =
-    parsed.version === 2 && Array.isArray(parsed.presets) ? parsed.presets : [];
+    [2, 3].includes(parsed.version as number) && Array.isArray(parsed.presets)
+      ? parsed.presets
+      : [];
   const presets = validatePresets(rawPresets);
 
   return {
-    version: 2,
+    version: 3,
     exportedAt: parsed.exportedAt,
     itemCount: items.length,
     items,

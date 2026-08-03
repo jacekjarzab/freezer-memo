@@ -178,6 +178,7 @@ export function InventoryPanel({
                       {
                         ...preset,
                         status: 'in_freezer',
+                        freezerKey: 'home',
                         notes: '',
                         frozenAt: preset.createdAt,
                         takenOutAt: null,
@@ -275,23 +276,28 @@ export function InventoryPanel({
                 {formatFrozenDate(item.frozenAt, language)}
               </p>
               {item.notes ? <p className="note-line">{item.notes}</p> : null}
-              <div className="card-actions inventory-actions">
-                <button
-                  className="secondary-button small-button"
-                  type="button"
-                  onClick={() => handleTakeOut(item)}
-                >
-                  {item.status === 'in_freezer'
-                    ? t('actions.takeOut')
-                    : t('actions.restore')}
-                </button>
-                <button
-                  className="ghost-button small-button"
-                  type="button"
-                  onClick={() => openEditPanel(item)}
-                >
-                  {t('actions.edit')}
-                </button>
+              <div className="inventory-card-footer">
+                <div className="card-actions inventory-actions">
+                  <button
+                    className="secondary-button small-button"
+                    type="button"
+                    onClick={() => handleTakeOut(item)}
+                  >
+                    {item.status === 'in_freezer'
+                      ? t('actions.takeOut')
+                      : t('actions.restore')}
+                  </button>
+                  <button
+                    className="ghost-button small-button"
+                    type="button"
+                    onClick={() => openEditPanel(item)}
+                  >
+                    {t('actions.edit')}
+                  </button>
+                </div>
+                <span className="freezer-badge">
+                  {t(`freezers.${item.freezerKey}`)}
+                </span>
               </div>
             </article>
           ))

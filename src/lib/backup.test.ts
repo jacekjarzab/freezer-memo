@@ -6,6 +6,7 @@ const validItem = {
   status: 'in_freezer',
   categoryKey: 'chicken',
   cutKey: 'breast',
+  freezerKey: 'home',
   quantityType: 'weight',
   quantityValue: 500,
   quantityUnit: 'g',
@@ -24,6 +25,21 @@ function backup(items: unknown[], itemCount = items.length) {
     items,
   });
 }
+
+const legacyItem = {
+  id: 'legacy-1',
+  status: 'in_freezer',
+  categoryKey: 'chicken',
+  cutKey: 'breast',
+  quantityType: 'weight',
+  quantityValue: 500,
+  quantityUnit: 'g',
+  notes: '',
+  frozenAt: '2026-08-01T10:00:00.000Z',
+  takenOutAt: null,
+  createdAt: '2026-08-01T10:00:00.000Z',
+  updatedAt: '2026-08-01T10:00:00.000Z',
+};
 
 const validPreset = {
   id: 'preset-1',
@@ -77,10 +93,16 @@ describe('parseBackupPayload', () => {
 
   it('imports v1 item-only backups with an empty preset collection', () => {
     expect(parseBackupPayload(backup([validItem]))).toMatchObject({
-      version: 2,
+      version: 3,
       presetCount: 0,
       presets: [],
       items: [validItem],
+    });
+  });
+
+  it('normalizes legacy items without a freezer key to home', () => {
+    expect(parseBackupPayload(backup([legacyItem]))).toMatchObject({
+      items: [{ ...legacyItem, freezerKey: 'home' }],
     });
   });
 
@@ -88,7 +110,7 @@ describe('parseBackupPayload', () => {
     expect(
       parseBackupPayload(backupV2([validItem], [validPreset])),
     ).toMatchObject({
-      version: 2,
+      version: 3,
       presetCount: 1,
       presets: [validPreset],
     });

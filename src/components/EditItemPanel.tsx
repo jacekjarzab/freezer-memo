@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
 import { CATEGORY_KEYS, type CategoryKey } from '../data/catalog';
-import type { FreezerItemRecord, QuantityType } from '../lib/db';
+import type { FreezerItemRecord, FreezerKey, QuantityType } from '../lib/db';
 import { formatQuantity } from '../lib/format';
 import type { AddDraft } from './view-model';
 
@@ -8,6 +8,7 @@ interface EditItemPanelProps {
   item: FreezerItemRecord;
   draft: AddDraft;
   currentCuts: string[];
+  freezerKeys: FreezerKey[];
   parsedQuantityValue: number;
   notice: string | null;
   noticeTone: 'success' | 'error';
@@ -25,6 +26,7 @@ export function EditItemPanel({
   item,
   draft,
   currentCuts,
+  freezerKeys,
   parsedQuantityValue,
   notice,
   noticeTone,
@@ -124,6 +126,22 @@ export function EditItemPanel({
             />
           )}
         </div>
+        <div className="field-group">
+          <label htmlFor="edit-freezer">{t('fields.freezer')}</label>
+          <select
+            id="edit-freezer"
+            value={draft.freezerKey}
+            onChange={(event) =>
+              update({ freezerKey: event.target.value as FreezerKey })
+            }
+          >
+            {freezerKeys.map((key) => (
+              <option key={key} value={key}>
+                {t(`freezers.${key}`)}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="field-group edit-notes">
           <label htmlFor="edit-notes">{t('fields.notes')}</label>
           <input
@@ -146,6 +164,7 @@ export function EditItemPanel({
               ...item,
               categoryKey: draft.categoryKey,
               cutKey: draft.cutKey,
+              freezerKey: draft.freezerKey,
               quantityType: draft.quantityType,
               quantityValue: Number.isFinite(parsedQuantityValue)
                 ? parsedQuantityValue
@@ -155,6 +174,9 @@ export function EditItemPanel({
             },
             t,
           )}
+        </p>
+        <p className="review-freezer-label">
+          {t('fields.freezer')}: {t(`freezers.${draft.freezerKey}`)}
         </p>
       </article>
       {notice ? (

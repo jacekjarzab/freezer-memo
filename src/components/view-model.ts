@@ -1,5 +1,5 @@
 import type { CategoryKey } from '../data/catalog';
-import type { QuantityType } from '../lib/db';
+import type { FreezerKey, QuantityType } from '../lib/db';
 
 export type AddStep =
   | 'category'
@@ -12,6 +12,7 @@ export type AddScreen = AddStep | 'done';
 export interface AddDraft {
   categoryKey: CategoryKey;
   cutKey: string;
+  freezerKey: FreezerKey;
   quantityType: QuantityType;
   quantityValue: string;
   quantityUnit: string;

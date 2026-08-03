@@ -28,6 +28,7 @@ import {
 } from './lib/backup';
 import {
   db,
+  type FreezerKey,
   type FreezerItemRecord,
   type PresetRecord,
   type QuantityType,
@@ -56,12 +57,14 @@ const addSteps: AddStep[] = [
   'notes',
 ];
 const quantityTypes: QuantityType[] = ['weight', 'packs', 'pieces'];
+const freezerKeys: FreezerKey[] = ['home', 'basement', 'away'];
 const weightUnits = ['kg', 'g'] as const;
-const appVersion = 'v1.2';
+const appVersion = 'v1.3';
 function createInitialDraft(): AddDraft {
   return {
     categoryKey: 'chicken',
     cutKey: 'breast',
+    freezerKey: 'home',
     quantityType: 'weight',
     quantityValue: '500',
     quantityUnit: 'g',
@@ -72,6 +75,7 @@ function createDraftFromItem(item: FreezerItemRecord): AddDraft {
   return {
     categoryKey: item.categoryKey,
     cutKey: item.cutKey,
+    freezerKey: item.freezerKey,
     quantityType: item.quantityType,
     quantityValue: String(item.quantityValue),
     quantityUnit: item.quantityUnit,
@@ -344,6 +348,7 @@ function App() {
         status: 'in_freezer',
         categoryKey: normalized.categoryKey,
         cutKey: normalized.cutKey,
+        freezerKey: normalized.freezerKey,
         quantityType: normalized.quantityType,
         quantityValue: Number.parseFloat(normalized.quantityValue),
         quantityUnit: normalized.quantityUnit,
@@ -470,6 +475,7 @@ function App() {
         quantityType: item.quantityType,
         quantityValue: String(item.quantityValue),
         quantityUnit: item.quantityUnit,
+        freezerKey: item.freezerKey,
         notes: item.notes,
       },
       'quantityValue',
@@ -501,6 +507,7 @@ function App() {
       const updated = await db.freezerItems.update(editingItem.id, {
         categoryKey: editDraft.categoryKey,
         cutKey: editDraft.cutKey,
+        freezerKey: editDraft.freezerKey,
         quantityType: editDraft.quantityType,
         quantityValue: parsedEditQuantityValue,
         quantityUnit: editDraft.quantityUnit,
@@ -736,6 +743,7 @@ function App() {
           handleAddSameAgain={handleAddSameAgain}
           handleBackStep={handleBackStep}
           handleCategorySelect={handleCategorySelect}
+          freezerKeys={freezerKeys}
           handleNextStep={handleNextStep}
           handleQuantityTypeSelect={handleQuantityTypeSelect}
           t={t}
@@ -785,6 +793,7 @@ function App() {
           noticeTone={editNoticeTone}
           close={closeEditPanel}
           save={() => void handleSaveEdit()}
+          freezerKeys={freezerKeys}
           selectCategory={handleEditCategorySelect}
           selectQuantityType={handleEditQuantityTypeSelect}
           update={updateEditDraft}
