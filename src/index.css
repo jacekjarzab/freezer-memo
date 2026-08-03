@@ -38,6 +38,10 @@ body {
   background: transparent;
 }
 
+body.no-scroll {
+  overflow: hidden;
+}
+
 body,
 button,
 input,

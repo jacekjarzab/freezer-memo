@@ -52,7 +52,7 @@ const addSteps: AddStep[] = [
 ]
 
 const quantityTypes: QuantityType[] = ['weight', 'packs', 'pieces']
-const weightUnits = ['g', 'kg'] as const
+const weightUnits = ['kg', 'g'] as const
 const appVersion = 'v1.0'
 
 function createInitialDraft(): AddDraft {
@@ -300,6 +300,27 @@ function App() {
     return () => media.removeEventListener('change', syncPwaState)
   }, [])
 
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 720px)')
+
+    const syncScrollLock = () => {
+      if (showAddPanel && media.matches) {
+        document.body.classList.add('no-scroll')
+        return
+      }
+
+      document.body.classList.remove('no-scroll')
+    }
+
+    syncScrollLock()
+    media.addEventListener('change', syncScrollLock)
+
+    return () => {
+      document.body.classList.remove('no-scroll')
+      media.removeEventListener('change', syncScrollLock)
+    }
+  }, [showAddPanel])
+
   function openAddFlow(prefill?: Partial<AddDraft>, step: AddScreen = 'category') {
     setDraft({
       ...createInitialDraft(),
@@ -337,7 +358,8 @@ function App() {
   function handleQuantityTypeSelect(nextType: QuantityType) {
     updateDraft({
       quantityType: nextType,
-      quantityUnit: nextType === 'weight' ? 'g' : nextType,
+      quantityValue: '1',
+      quantityUnit: nextType === 'weight' ? 'kg' : nextType,
     })
   }
 
@@ -351,7 +373,8 @@ function App() {
   function handleEditQuantityTypeSelect(nextType: QuantityType) {
     updateEditDraft({
       quantityType: nextType,
-      quantityUnit: nextType === 'weight' ? 'g' : nextType,
+      quantityValue: '1',
+      quantityUnit: nextType === 'weight' ? 'kg' : nextType,
     })
   }
 
@@ -596,7 +619,11 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main
+      className={
+        showAddPanel ? 'app-shell app-shell--add-open' : 'app-shell'
+      }
+    >
       {isOfflineReady || updateAvailable || deferredInstallPrompt || isStandalone ? (
         <section className="panel pwa-panel">
           <div className="panel-heading pwa-panel-header">
@@ -724,8 +751,16 @@ function App() {
               <p className="eyebrow">{t('add.stepLabel')}</p>
               <h2>{t('add.title')}</h2>
             </div>
-            <p className="panel-copy">{t('add.subtitle')}</p>
+            <button
+              className="ghost-button small-button add-flow-close"
+              type="button"
+              onClick={closeAddFlow}
+            >
+              {t('actions.close')}
+            </button>
           </div>
+
+          <p className="panel-copy add-flow-subtitle">{t('add.subtitle')}</p>
 
           <div className="progress-wrap" aria-label={t('add.progressLabel')}>
             <div className="progress-track">
@@ -760,11 +795,17 @@ function App() {
             <div className="step-shell">
               <div className="step-header">
                 <h3>{t(`add.steps.${addScreen}.title`)}</h3>
-                <p>{t(`add.steps.${addScreen}.description`)}</p>
+                <p
+                  className={
+                    addScreen === 'cut' ? 'step-header-note' : undefined
+                  }
+                >
+                  {t(`add.steps.${addScreen}.description`)}
+                </p>
               </div>
 
               {addScreen === 'category' ? (
-                <div className="option-grid">
+                <div className="option-grid tight-option-grid">
                   {CATEGORY_KEYS.map((key) => (
                     <button
                       className={
@@ -777,14 +818,13 @@ function App() {
                       onClick={() => handleCategorySelect(key)}
                     >
                       <strong>{t(`catalog.categories.${key}`)}</strong>
-                      <span>{t(`add.categoryHints.${key}`)}</span>
                     </button>
                   ))}
                 </div>
               ) : null}
 
               {addScreen === 'cut' ? (
-                <div className="option-grid">
+                <div className="option-grid tight-option-grid">
                   {currentCuts.map((key) => (
                     <button
                       className={
@@ -795,7 +835,6 @@ function App() {
                       onClick={() => updateDraft({ cutKey: key })}
                     >
                       <strong>{t(`catalog.cuts.${draft.categoryKey}.${key}`)}</strong>
-                      <span>{t('add.cutHelper')}</span>
                     </button>
                   ))}
                 </div>
@@ -824,7 +863,8 @@ function App() {
               {addScreen === 'quantityValue' ? (
                 <div className="step-content">
                   <div className="quantity-panel">
-                    <div className="field-group">
+                    <div className="quantity-inline">
+                    <div className="field-group quantity-amount-group">
                       <label htmlFor="quantityValue">
                         {t('fields.quantityValue')}
                       </label>
@@ -839,7 +879,7 @@ function App() {
                       />
                     </div>
 
-                    <div className="field-group">
+                    <div className="field-group quantity-unit-group">
                       <label>{t('fields.quantityUnit')}</label>
                       {draft.quantityType === 'weight' ? (
                         <div className="pill-row">
@@ -866,10 +906,11 @@ function App() {
                         </div>
                       )}
                     </div>
+                    </div>
                   </div>
 
                   <article className="step-preview">
-                    <span>{t('add.previewLabel')}</span>
+                    <span>{t('add.previewLabel')} </span>
                     <strong>
                       {t(`catalog.categories.${draft.categoryKey}`)} ·{' '}
                       {t(`catalog.cuts.${draft.categoryKey}.${draft.cutKey}`)}
@@ -892,7 +933,7 @@ function App() {
                   </div>
 
                   <article className="review-card">
-                    <span>{t('add.reviewLabel')}</span>
+                    <span>{t('add.reviewLabel')} </span>
                     <strong>
                       {t(`catalog.categories.${draft.categoryKey}`)} ·{' '}
                       {t(`catalog.cuts.${draft.categoryKey}.${draft.cutKey}`)}
@@ -981,8 +1022,9 @@ function App() {
       </button>
 
       <section className="panel">
-        <div className="panel-heading">
-          <div>
+        <div className="panel-heading inventory-header">
+          <div className="inventory-title-row">
+            <div>
             <p className="eyebrow">
               {inventoryMode === 'current'
                 ? t('inventory.eyebrow')
@@ -993,8 +1035,8 @@ function App() {
                 ? t('inventory.title')
                 : t('history.title')}
             </h2>
-          </div>
-          <div className="view-switcher" aria-label={t('history.modeLabel')}>
+            </div>
+            <div className="view-switcher inventory-view-switcher" aria-label={t('history.modeLabel')}>
             <button
               className={
                 inventoryMode === 'current'
@@ -1014,9 +1056,10 @@ function App() {
               }
               type="button"
               onClick={() => setInventoryMode('history')}
-            >
-              {t('history.historyView')}
-            </button>
+              >
+                {t('history.historyView')}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1087,7 +1130,7 @@ function App() {
             <div className="quick-add-grid">
               {recentItems.map((item) => (
                 <button
-                  className="quick-add-card"
+                  className="quick-add-card compact"
                   key={`recent-${item.id}`}
                   type="button"
                   onClick={() => applyRecent(item)}
@@ -1118,23 +1161,18 @@ function App() {
             filteredItems.map((item) => (
               <article className="inventory-card" key={item.id}>
                 <div className="inventory-main">
-                  <div>
-                    <p className="card-kicker">
-                      {t(`catalog.categories.${item.categoryKey}`)}
-                    </p>
-                    <h3>{t(`catalog.cuts.${item.categoryKey}.${item.cutKey}`)}</h3>
+                  <div className="inventory-copy">
+                    <h3>
+                      {t(`catalog.categories.${item.categoryKey}`)} |{' '}
+                      {t(`catalog.cuts.${item.categoryKey}.${item.cutKey}`)}
+                    </h3>
                   </div>
+                </div>
+
+                <div className="inventory-row inventory-row-badges">
                   <strong className="quantity-badge">
                     {formatQuantity(item, t)}
                   </strong>
-                </div>
-
-                <p className="meta-line">
-                  {formatFrozenDate(item.frozenAt, i18n.language)}
-                </p>
-                {item.notes ? <p className="note-line">{item.notes}</p> : null}
-
-                <div className="card-actions">
                   <span
                     className={
                       item.status === 'in_freezer'
@@ -1144,6 +1182,14 @@ function App() {
                   >
                     {t(`statuses.${item.status}`)}
                   </span>
+                </div>
+
+                <p className="meta-line">
+                  {formatFrozenDate(item.frozenAt, i18n.language)}
+                </p>
+                {item.notes ? <p className="note-line">{item.notes}</p> : null}
+
+                <div className="card-actions inventory-actions">
                   <button
                     className="ghost-button small-button"
                     type="button"
@@ -1278,7 +1324,7 @@ function App() {
           </div>
 
           <article className="review-card">
-            <span>{t('edit.previewLabel')}</span>
+            <span>{t('edit.previewLabel')} </span>
             <strong>
               {t(`catalog.categories.${editDraft.categoryKey}`)} ·{' '}
               {t(`catalog.cuts.${editDraft.categoryKey}.${editDraft.cutKey}`)}
