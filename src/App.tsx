@@ -644,9 +644,12 @@ function App() {
       ) : null}
       <header className="app-header panel" aria-label="Freezer Memo">
         <div className="app-brand">
-          <span className="app-icon" aria-hidden="true">
-            FM
-          </span>
+          <img
+            className="app-icon"
+            src="/icons/freezer.svg"
+            alt=""
+            aria-hidden="true"
+          />
           <div className="app-brand-copy">
             <div className="app-brand-line">
               <h1 className="app-name">Freezer Memo</h1>

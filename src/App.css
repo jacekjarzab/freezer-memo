@@ -75,16 +75,8 @@
 .app-icon {
   width: 3rem;
   height: 3rem;
-  border-radius: 1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   flex: 0 0 auto;
-  background: linear-gradient(135deg, #123244, #1f617b);
-  color: #eff9fb;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  box-shadow: 0 12px 28px rgba(18, 50, 68, 0.18);
+  object-fit: contain;
 }
 
 .app-brand-copy {
@@ -1346,7 +1338,6 @@
   .app-icon {
     width: 2.55rem;
     height: 2.55rem;
-    border-radius: 0.9rem;
   }
 
   .app-name {
