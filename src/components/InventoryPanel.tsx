@@ -53,51 +53,49 @@ export function InventoryPanel({
       ? t('inventory.searchPlaceholder')
       : t('history.searchPlaceholder');
   return (
-    <section className="panel">
-      <div className="panel-heading inventory-header">
-        <div className="inventory-title-row">
-          <div>
-            <p className="eyebrow">
-              {inventoryMode === 'current'
-                ? t('inventory.eyebrow')
-                : t('history.eyebrow')}
-            </p>
-            <h2>
-              {inventoryMode === 'current'
-                ? t('inventory.title')
-                : t('history.title')}
-            </h2>
-          </div>
-          <div
-            className="view-switcher inventory-view-switcher"
-            aria-label={t('history.modeLabel')}
-          >
-            <button
-              className={
-                inventoryMode === 'current'
-                  ? 'filter-chip active'
-                  : 'filter-chip'
-              }
-              type="button"
-              onClick={() => setInventoryMode('current')}
-            >
-              {t('history.currentView')}
-            </button>
-            <button
-              className={
-                inventoryMode === 'history'
-                  ? 'filter-chip active'
-                  : 'filter-chip'
-              }
-              type="button"
-              onClick={() => setInventoryMode('history')}
-            >
-              {t('history.historyView')}
-            </button>
-          </div>
-        </div>
+    <section
+      aria-labelledby={`inventory-tab-${inventoryMode}`}
+      className="panel"
+    >
+      <div
+        className="inventory-tabs"
+        role="tablist"
+        aria-label={t('history.modeLabel')}
+      >
+        <button
+          aria-controls="inventory-panel-content"
+          aria-selected={inventoryMode === 'current'}
+          className="inventory-tab"
+          id="inventory-tab-current"
+          role="tab"
+          tabIndex={inventoryMode === 'current' ? 0 : -1}
+          type="button"
+          onClick={() => setInventoryMode('current')}
+        >
+          <span className="inventory-tab-kicker">{t('inventory.eyebrow')}</span>
+          <strong>{t('inventory.title')}</strong>
+        </button>
+        <button
+          aria-controls="inventory-panel-content"
+          aria-selected={inventoryMode === 'history'}
+          className="inventory-tab"
+          id="inventory-tab-history"
+          role="tab"
+          tabIndex={inventoryMode === 'history' ? 0 : -1}
+          type="button"
+          onClick={() => setInventoryMode('history')}
+        >
+          <span className="inventory-tab-kicker">{t('history.eyebrow')}</span>
+          <strong>{t('history.title')}</strong>
+        </button>
       </div>
-      <div className="search-row">
+      <div
+        id="inventory-panel-content"
+        aria-labelledby={`inventory-tab-${inventoryMode}`}
+        className="inventory-panel-content"
+        role="tabpanel"
+      >
+        <div className="search-row">
         <input
           aria-label={searchPlaceholder}
           className="search-input"
@@ -105,8 +103,8 @@ export function InventoryPanel({
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
-      </div>
-      <div className="inventory-controls">
+        </div>
+        <div className="inventory-controls">
         <div className="filter-chip-row" aria-label={t('filters.category')}>
           <button
             className={
@@ -151,8 +149,8 @@ export function InventoryPanel({
             </option>
           </select>
         </div>
-      </div>
-      <div className="quick-add-section">
+        </div>
+        <div className="quick-add-section">
         <p className="section-label">{t('presets.title')}</p>
         {pinnedPresets.length === 0 ? (
           <p className="panel-copy">{t('presets.empty')}</p>
@@ -199,8 +197,8 @@ export function InventoryPanel({
             ))}
           </div>
         )}
-      </div>
-      {inventoryMode === 'current' && recentItems.length > 0 ? (
+        </div>
+        {inventoryMode === 'current' && recentItems.length > 0 ? (
         <div className="quick-add-section">
           <p className="section-label">{t('recent.title')}</p>
           <div className="quick-add-grid">
@@ -236,8 +234,8 @@ export function InventoryPanel({
             ))}
           </div>
         </div>
-      ) : null}
-      <div className="inventory-list">
+        ) : null}
+        <div className="inventory-list">
         {filteredItems.length === 0 ? (
           <article className="empty-state">
             <strong>
@@ -296,6 +294,7 @@ export function InventoryPanel({
             </article>
           ))
         )}
+        </div>
       </div>
     </section>
   );

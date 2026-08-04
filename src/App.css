@@ -600,8 +600,63 @@
   white-space: nowrap;
 }
 
-.inventory-view-switcher {
-  margin-left: auto;
+.inventory-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 0 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.inventory-tab {
+  position: relative;
+  display: grid;
+  flex: 1 1 50%;
+  gap: 0;
+  justify-items: center;
+  border: 0;
+  padding: 0 0.1rem 0.5rem;
+  background: transparent;
+  color: var(--text-strong);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  opacity: 0.2;
+  transition: opacity 160ms ease;
+}
+
+.inventory-tab-kicker {
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.inventory-tab strong {
+  font-size: 1rem;
+}
+
+.inventory-tab[aria-selected='true'] {
+  opacity: 1;
+}
+
+.inventory-tab[aria-selected='true']::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--text-strong);
+  content: '';
+}
+
+.inventory-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.inventory-panel-content {
+  min-width: 0;
 }
 
 .quick-add-card.compact {
@@ -717,12 +772,6 @@
   display: grid;
   gap: 0.9rem;
   margin-top: 1rem;
-}
-
-.view-switcher {
-  display: inline-flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
 }
 
 .filter-chip-row {
