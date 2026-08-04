@@ -655,11 +655,13 @@ function App() {
           </div>
         </div>
         <button
+          aria-label={t('settings.open')}
           className="settings-trigger secondary-button"
+          title={t('settings.open')}
           type="button"
           onClick={() => setActiveView('settings')}
         >
-          {t('settings.open')}
+          <img src="/icons/settings.svg" alt="" aria-hidden="true" />
         </button>
       </header>
       {operationNotice ? (
