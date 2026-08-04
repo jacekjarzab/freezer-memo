@@ -40,11 +40,11 @@ Status legend:
 ## Guided Add Flow
 
 - [x] Replace single-panel form with true step flow
-- [x] Step 1: category selection screen
+- [x] Step 1: category selection screen with pinned presets and quick repeat
 - [x] Step 2: cut/part selection filtered by category
 - [x] Step 3: quantity type selection
 - [x] Step 4: quantity value + unit entry
-- [x] Step 5: optional searchable note
+- [x] Step 5: freezer selection + optional searchable note
 - [x] Add progress indicator and back navigation
 - [x] Add save success state with `Add same again`
 - [x] Improve one-handed mobile ergonomics for each step
@@ -94,7 +94,7 @@ Status legend:
 ## UX Polish
 
 - [ ] Refine visual hierarchy for inventory cards
-- [ ] Improve search-first home screen layout
+- [x] Improve search-first home screen layout
 - [x] Add confirmation/undo feedback for take-out action
 - [ ] Improve forms for fast thumb use
 - [ ] Add subtle motion/transitions without making it annoying

@@ -97,7 +97,8 @@ const resources = {
       add: {
         stepLabel: 'Guided add flow',
         title: 'Add freezer item',
-        subtitle: 'Pick the cut first, then quantity and any searchable note.',
+        subtitle:
+          'Pick the cut first, then quantity, freezer, and any searchable note.',
         progressLabel: 'Add flow progress',
         stepCounter: 'Step {{current}} of {{total}}',
         stepDone: 'Saved',
@@ -146,19 +147,25 @@ const resources = {
           notes: {
             title: 'Add an optional note',
             description:
-              'Use notes only when they help future-you search faster.',
+              'Choose the freezer first, then add notes only when they help future-you search faster.',
           },
         },
       },
       fields: {
         category: 'Category',
         cut: 'Cut / part',
+        freezer: 'Freezer',
         quantityType: 'Quantity type',
         quantityValue: 'Amount',
         quantityPlaceholder: '1',
         quantityUnit: 'Unit',
         notes: 'Notes',
         notesPlaceholder: 'Marinated, for ramen, vacuum packed...',
+      },
+      freezers: {
+        home: 'Home',
+        basement: 'Basement',
+        away: 'Away',
       },
       inventory: {
         eyebrow: 'Search in',
@@ -404,7 +411,8 @@ const resources = {
       add: {
         stepLabel: 'Prowadzone dodawanie',
         title: 'Dodaj produkt',
-        subtitle: 'Najpierw wybierz rodzaj, potem ilość i opcjonalną notatkę.',
+        subtitle:
+          'Najpierw wybierz rodzaj, potem ilość, zamrażarkę i opcjonalną notatkę.',
         progressLabel: 'Postęp dodawania',
         stepCounter: 'Krok {{current}} z {{total}}',
         stepDone: 'Zapisane',
@@ -454,19 +462,25 @@ const resources = {
           notes: {
             title: 'Dodaj opcjonalną notatkę',
             description:
-              'Notatki tylko wtedy, gdy pomogą szybciej to potem znaleźć.',
+              'Najpierw wybierz zamrażarkę, a notatkę dodaj tylko wtedy, gdy pomoże szybciej to potem znaleźć.',
           },
         },
       },
       fields: {
         category: 'Kategoria',
         cut: 'Część / rodzaj',
+        freezer: 'Zamrażarka',
         quantityType: 'Typ ilości',
         quantityValue: 'Ilość',
         quantityPlaceholder: '1',
         quantityUnit: 'Jednostka',
         notes: 'Notatki',
         notesPlaceholder: 'Marynowane, na ramen, vacuum...',
+      },
+      freezers: {
+        home: 'Dom',
+        basement: 'Piwnica',
+        away: 'Wyjazd',
       },
       inventory: {
         eyebrow: 'Szukaj w',

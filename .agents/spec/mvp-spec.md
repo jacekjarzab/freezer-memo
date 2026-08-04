@@ -70,8 +70,8 @@ Freezer contents are usually tracked mentally, in chat notes, or not at all. Tha
 
 ### Screen-Level Responsibilities
 
-- Home: search, summary, recent items, and primary add CTA
-- Add Item: guided creation with category, cut, quantity, and optional note
+- Home: search, summary, inventory browsing, and primary add CTA
+- Add Item: guided creation with category, repeat shortcuts, cut, quantity, freezer, and optional note
 - Inventory List: searchable active stock with filters and quick removal
 - Item Details: review metadata, adjust note, and correct mistakes
 - Settings and Backup: export, import, and basic app state helpers
@@ -81,7 +81,6 @@ Freezer contents are usually tracked mentally, in chat notes, or not at all. Tha
 - prominent search field
 - primary CTA: `Add item`
 - summary chips: total items and category counts
-- recent items for quick repeat
 - active inventory list preview
 
 ## Item Entry Flow
@@ -99,6 +98,8 @@ Initial category list:
 - fish
 - duck
 - other
+
+Step 1 should also surface pinned presets and recent quick-repeat entries below the category grid so repeat adds stay inside the add flow instead of cluttering the home screen.
 
 ### Step 2: Select cut / part
 
@@ -129,7 +130,15 @@ Examples:
 - 2 packs
 - 4 pieces
 
-### Step 4: Optional note
+### Step 4: Choose freezer and optional note
+
+Freezer options for MVP:
+
+- home
+- basement
+- away
+
+Freezer choice appears above the free-text searchable note.
 
 Free-text searchable note for things like:
 
@@ -265,10 +274,10 @@ Useful filters for MVP:
 ### Add Item
 
 1. User taps `Add item`
-2. User selects category
+2. User either selects a category or starts from a pinned preset / recent repeat
 3. User selects cut
 4. User enters quantity
-5. User optionally adds note
+5. User chooses freezer and optionally adds note
 6. User saves
 7. App stores the item locally and shows repeat options
 
@@ -338,18 +347,19 @@ This keeps the app useful without building auth or sync too early.
 - search inventory
 - filter by category
 - mark item as taken out
-- view recent items and quickly add same combination again
+- view recent items and quickly add same combination again from inside the add flow
 - offline support
 - installable PWA behavior
 - JSON export and import
 - edit note after creation
+- assign a freezer location (`home`, `basement`, `away`) and see it on the inventory card
 - view taken-out items through a history filter or dedicated view
 - language switcher for English and Polish
 
 ### Nice to Have if Time Allows
 
 - favorites or pinned presets
-- freezer drawer/location field
+- deeper freezer drawer/location field
 - bulk delete for taken-out history
 - low-stock reminders for favorite items
 
@@ -369,11 +379,11 @@ This keeps the app useful without building auth or sync too early.
 - delayed PWA/offline setup can create architecture rework later
 - mixing translated labels with stored raw strings can make search and catalog maintenance messy
 
-## Open Product Decisions
+## Resolved Product Decisions
 
-- whether to support non-meat freezer items in MVP or keep the scope meat-first
-- whether history should be visible by default or hidden under a separate view
-- whether presets are auto-generated from recent usage only or can also be manually pinned
+- MVP scope stays meat-first
+- taken-out history is available behind a dedicated history view instead of showing by default
+- presets can be pinned manually in MVP, not only auto-generated from recent usage
 
 ## Acceptance Criteria
 

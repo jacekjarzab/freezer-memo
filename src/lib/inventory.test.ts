@@ -9,6 +9,7 @@ const item = (
   status: 'in_freezer',
   categoryKey: 'chicken',
   cutKey: 'breast',
+  freezerKey: 'home',
   quantityType: 'weight',
   quantityValue: 500,
   quantityUnit: 'g',

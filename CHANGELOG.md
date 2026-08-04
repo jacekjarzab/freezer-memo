@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.3 - 2026-08-03
+
+- Added freezer selection for inventory items with `Home`, `Basement`, and `Away` options in the guided add flow.
+- Added freezer location editing and a location badge on inventory cards.
+- Added IndexedDB schema v3 and backup import normalization so older items without a freezer location default to `Home`.
+- Moved `Pinned presets` and `Quick add again` from the home screen into add step 1 to keep the landing view cleaner and more search-first.
+- Fixed the mobile add-flow footer so sticky actions no longer overlap step 1 content.
+
 ## v1.2 - 2026-08-03
 
 - Added pinned presets for frequently repeated freezer entries, including pin, unpin, and one-tap use flows.
