@@ -492,7 +492,7 @@ const resources = {
       freezers: {
         home: 'Dom',
         basement: 'Piwnica',
-        away: 'Wyjazd',
+        away: 'Magazyn',
       },
       inventory: {
         eyebrow: 'Szukaj w',
