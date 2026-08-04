@@ -75,16 +75,9 @@
 .app-icon {
   width: 3rem;
   height: 3rem;
-  border-radius: 1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   flex: 0 0 auto;
-  background: linear-gradient(135deg, #123244, #1f617b);
-  color: #eff9fb;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  box-shadow: 0 12px 28px rgba(18, 50, 68, 0.18);
+  object-fit: contain;
+  color: var(--accent);
 }
 
 .app-brand-copy {
@@ -95,7 +88,7 @@
 
 .app-brand-line {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.65rem;
   flex-wrap: wrap;
 }
@@ -555,6 +548,93 @@
 .language-chip.active {
   color: #f4fbfd;
   background: var(--accent);
+}
+
+.settings-trigger {
+  width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0.6rem;
+}
+
+.settings-trigger img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.settings-view {
+  min-height: calc(100dvh - 2.5rem);
+  display: grid;
+  align-content: start;
+  gap: 1.5rem;
+  padding: clamp(1.5rem, 5vw, 4rem);
+}
+
+.settings-header,
+.settings-section {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.settings-header {
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-header h1 {
+  margin: 0.2rem 0 0.45rem;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  letter-spacing: -0.04em;
+}
+
+.settings-back {
+  min-height: 2.75rem;
+  flex: 0 0 auto;
+}
+
+.settings-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 28rem);
+  align-items: center;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-section .section-label {
+  margin-bottom: 0.35rem;
+}
+
+.settings-language {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+.settings-language .language-chip {
+  min-width: 4rem;
+  min-height: 2.75rem;
+}
+
+.settings-data-actions {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.settings-trigger:focus-visible,
+.settings-back:focus-visible,
+.settings-language .language-chip:focus-visible,
+.settings-data-actions button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.settings-section .backup-card,
+.settings-section .backup-notice {
+  grid-column: 1 / -1;
 }
 
 .success-shell {
@@ -1218,10 +1298,47 @@
     gap: 0.7rem;
   }
 
+  .settings-view {
+    min-height: calc(100dvh - 1.8rem);
+    padding: 1rem;
+    gap: 0.8rem;
+  }
+
+  .settings-header,
+  .settings-section {
+    grid-template-columns: 1fr;
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .settings-header {
+    padding-bottom: 0.9rem;
+  }
+
+  .settings-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .settings-back,
+  .settings-data-actions,
+  .settings-language {
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .settings-back,
+  .settings-data-actions > *,
+  .settings-language .language-chip {
+    flex: 1 1 0;
+  }
+
+  .settings-section .backup-card {
+    display: block;
+  }
+
   .app-icon {
     width: 2.55rem;
     height: 2.55rem;
-    border-radius: 0.9rem;
   }
 
   .app-name {
@@ -1229,7 +1346,7 @@
   }
 
   .app-version {
-    padding: 0.16rem 0.42rem;
+    padding: 0 0.42rem;
     font-size: 0.66rem;
   }
 

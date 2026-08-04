@@ -46,7 +46,13 @@ const resources = {
         },
       },
       settings: {
+        eyebrow: 'App settings',
+        title: 'Settings',
+        subtitle: 'Manage language and local freezer data.',
         language: 'Language',
+        languageDescription: 'Choose the language used across the app.',
+        data: 'Data',
+        open: 'Settings',
       },
       pwa: {
         eyebrow: 'PWA status',
@@ -354,7 +360,13 @@ const resources = {
         },
       },
       settings: {
+        eyebrow: 'Ustawienia aplikacji',
+        title: 'Ustawienia',
+        subtitle: 'Zarządzaj językiem i lokalnymi danymi zamrażarki.',
         language: 'Język',
+        languageDescription: 'Wybierz język używany w całej aplikacji.',
+        data: 'Dane',
+        open: 'Ustawienia',
       },
       pwa: {
         eyebrow: 'Status PWA',
@@ -480,7 +492,7 @@ const resources = {
       freezers: {
         home: 'Dom',
         basement: 'Piwnica',
-        away: 'Wyjazd',
+        away: 'Magazyn',
       },
       inventory: {
         eyebrow: 'Szukaj w',

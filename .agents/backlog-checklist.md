@@ -114,7 +114,7 @@ Status legend:
 ## Nice-to-Have After MVP
 
 - [x] Pinned presets / favorites
-- [ ] Freezer drawer / compartment field
+- [x] Freezer drawer / compartment field
 - [ ] Bulk clear history
 - [ ] Age indicators / freezer duration
 - [ ] Recipe or usage suggestions
