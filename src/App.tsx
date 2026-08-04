@@ -17,9 +17,9 @@ import {
   type CategoryKey,
 } from './data/catalog';
 import { AddFlow } from './components/AddFlow';
-import { BackupPanel } from './components/BackupPanel';
 import { EditItemPanel } from './components/EditItemPanel';
 import { InventoryPanel } from './components/InventoryPanel';
+import { SettingsView } from './components/SettingsView';
 import type { AddDraft, AddScreen, AddStep } from './components/view-model';
 import {
   createBackupPayload,
@@ -60,6 +60,7 @@ const quantityTypes: QuantityType[] = ['weight', 'packs', 'pieces'];
 const freezerKeys: FreezerKey[] = ['home', 'basement', 'away'];
 const weightUnits = ['kg', 'g'] as const;
 const appVersion = 'v1.3';
+type AppView = 'inventory' | 'settings';
 function createInitialDraft(): AddDraft {
   return {
     categoryKey: 'chicken',
@@ -88,6 +89,7 @@ function App() {
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [search, setSearch] = useState('');
+  const [activeView, setActiveView] = useState<AppView>('inventory');
   const [inventoryMode, setInventoryMode] = useState<InventoryMode>('current');
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<
     CategoryKey | 'all'
@@ -107,7 +109,6 @@ function App() {
   const [backupNoticeTone, setBackupNoticeTone] = useState<'success' | 'error'>(
     'success',
   );
-  const [isBackupOpen, setIsBackupOpen] = useState(false);
   const [isPwaOpen, setIsPwaOpen] = useState(false);
   const [deferredInstallPrompt, setDeferredInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
@@ -229,13 +230,6 @@ function App() {
       window.removeEventListener('appinstalled', installed);
       window.removeEventListener('resize', updateStandaloneState);
     };
-  }, []);
-  useEffect(() => {
-    const media = window.matchMedia('(max-width: 720px)');
-    const sync = () => setIsBackupOpen(!media.matches);
-    sync();
-    media.addEventListener('change', sync);
-    return () => media.removeEventListener('change', sync);
   }, []);
   useEffect(() => {
     const media = window.matchMedia('(max-width: 720px)');
@@ -582,6 +576,8 @@ function App() {
     <main
       className={showAddPanel ? 'app-shell app-shell--add-open' : 'app-shell'}
     >
+      {activeView === 'inventory' ? (
+        <>
       {isOfflineReady ||
       updateAvailable ||
       deferredInstallPrompt ||
@@ -658,26 +654,13 @@ function App() {
             </div>
           </div>
         </div>
-        <div className="language-switcher" aria-label={t('settings.language')}>
-          <button
-            className={
-              i18n.language === 'en' ? 'language-chip active' : 'language-chip'
-            }
-            type="button"
-            onClick={() => updateLanguage('en')}
-          >
-            EN
-          </button>
-          <button
-            className={
-              i18n.language === 'pl' ? 'language-chip active' : 'language-chip'
-            }
-            type="button"
-            onClick={() => updateLanguage('pl')}
-          >
-            PL
-          </button>
-        </div>
+        <button
+          className="settings-trigger secondary-button"
+          type="button"
+          onClick={() => setActiveView('settings')}
+        >
+          {t('settings.open')}
+        </button>
       </header>
       {operationNotice ? (
         <p className="backup-notice error" role="alert">
@@ -800,17 +783,21 @@ function App() {
           t={t}
         />
       ) : null}
-      <BackupPanel
-        inputRef={importInputRef}
-        isOpen={isBackupOpen}
-        notice={backupNotice}
-        noticeTone={backupNoticeTone}
-        exportBackup={() => void handleExportBackup()}
-        importButton={() => importInputRef.current?.click()}
-        importFile={(event) => void handleImportFile(event)}
-        setIsOpen={setIsBackupOpen}
-        t={t}
-      />
+        </>
+      ) : (
+        <SettingsView
+          inputRef={importInputRef}
+          language={i18n.language}
+          notice={backupNotice}
+          noticeTone={backupNoticeTone}
+          exportBackup={() => void handleExportBackup()}
+          importButton={() => importInputRef.current?.click()}
+          importFile={(event) => void handleImportFile(event)}
+          onBack={() => setActiveView('inventory')}
+          updateLanguage={updateLanguage}
+          t={t}
+        />
+      )}
     </main>
   );
 }
