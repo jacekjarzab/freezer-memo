@@ -377,7 +377,7 @@ const resources = {
         title: 'Trzymaj kopię JSON danych z zamrażarki',
         subtitle:
           'Wyeksportuj wszystko lokalnie albo przywróć dane z pliku backupu.',
-        exportButton: 'Eksportuj backup JSON',
+        exportButton: 'Eksportuj backup',
         importButton: 'Importuj backup',
         replaceTitle: 'Import nadpisuje lokalny stan',
         replaceCopy:
