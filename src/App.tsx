@@ -334,7 +334,8 @@ function App() {
     const normalized = {
       ...draft,
       quantityValue: draft.quantityValue.replace(',', '.'),
-      notes: draft.notes.trim(),
+      // Notes are raw user-authored text; preserve whitespace and language.
+      notes: draft.notes,
     };
     try {
       await db.freezerItems.add({
@@ -505,7 +506,8 @@ function App() {
         quantityType: editDraft.quantityType,
         quantityValue: parsedEditQuantityValue,
         quantityUnit: editDraft.quantityUnit,
-        notes: editDraft.notes.trim(),
+        // Notes are raw user text and must survive edits unchanged.
+        notes: editDraft.notes,
         updatedAt: new Date().toISOString(),
       });
       if (!updated) throw new Error('missing_item');
@@ -642,7 +644,7 @@ function App() {
           ) : null}
         </section>
       ) : null}
-      <header className="app-header panel" aria-label="Freezer Memo">
+      <header className="app-header panel" aria-label={t('app.name')}>
         <div className="app-brand">
           <img
             className="app-icon"
@@ -652,7 +654,7 @@ function App() {
           />
           <div className="app-brand-copy">
             <div className="app-brand-line">
-              <h1 className="app-name">Freezer Memo</h1>
+              <h1 className="app-name">{t('app.name')}</h1>
               <span className="app-version">{appVersion}</span>
             </div>
           </div>
