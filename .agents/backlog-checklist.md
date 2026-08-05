@@ -76,9 +76,9 @@ Status legend:
 - [x] Wire language switcher
 - [x] Translate default categories and cuts
 - [x] Keep user notes as raw free text
-- [ ] Extract any remaining hardcoded UI copy
-- [ ] Verify pluralization/quantity phrasing in English
-- [ ] Verify pluralization/quantity phrasing in Polish
+- [x] Extract any remaining hardcoded UI copy
+- [x] Verify pluralization/quantity phrasing in English
+- [x] Verify pluralization/quantity phrasing in Polish
 - [x] Test language switching against saved items and search behavior
 
 ## PWA and Offline

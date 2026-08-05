@@ -10,6 +10,9 @@ const resources = {
         subtitle:
           'Fast add flow, searchable inventory, and no account nonsense for the MVP.',
       },
+      app: {
+        name: 'Freezer Memo',
+      },
       actions: {
         addItem: 'Add item',
         addSameAgain: 'Add same again',
@@ -320,9 +323,12 @@ const resources = {
       hero: {
         eyebrow: 'Offline-first tracker do zamrażarki',
         title:
-          'Wiesz, co jest w zamrażarce, zanim zaczniesz gotować albo zakupy.',
+          'Wiesz, co jest w zamrażarce, zanim zaczniesz gotować albo zrobisz zakupy.',
         subtitle:
           'Szybkie dodawanie, przeszukiwalny stan i zero pieprzenia się z kontem w MVP.',
+      },
+      app: {
+        name: 'Freezer Memo',
       },
       actions: {
         addItem: 'Dodaj produkt',
