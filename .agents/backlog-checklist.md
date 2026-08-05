@@ -93,12 +93,12 @@ Status legend:
 
 ## UX Polish
 
-- [ ] Refine visual hierarchy for inventory cards
+- [x] Refine visual hierarchy for inventory cards
 - [x] Improve search-first home screen layout
 - [x] Add confirmation/undo feedback for take-out action
-- [ ] Improve forms for fast thumb use
-- [ ] Add subtle motion/transitions without making it annoying
-- [ ] Audit contrast, tap targets, and accessibility basics
+- [x] Improve forms for fast thumb use
+- [x] Add subtle motion/transitions without making it annoying
+- [x] Audit contrast, tap targets, and accessibility basics
 
 ## QA
 

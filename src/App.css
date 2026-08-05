@@ -376,6 +376,12 @@
   color: var(--text-strong);
 }
 
+.field-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
 .field-group input,
 .field-group select,
 .search-input {
@@ -472,6 +478,19 @@
     transform 120ms ease,
     opacity 120ms ease,
     background 120ms ease;
+}
+
+button,
+input,
+select {
+  min-height: 2.75rem;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid #2b748b;
+  outline-offset: 3px;
 }
 
 .primary-button:hover,
@@ -707,7 +726,7 @@
   font: inherit;
   font-weight: 700;
   cursor: pointer;
-  opacity: 0.2;
+  opacity: 0.4;
   transition: opacity 160ms ease;
 }
 
@@ -1090,6 +1109,18 @@
 
 .inventory-card {
   padding: 0.8rem;
+  display: grid;
+  gap: 0.65rem;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.inventory-card:hover {
+  transform: translateY(-2px);
+}
+
+.inventory-card:focus-within {
+  border-color: rgba(43, 116, 139, 0.55);
+  box-shadow: 0 16px 32px rgba(18, 50, 68, 0.12);
 }
 
 .inventory-card-footer {
@@ -1097,6 +1128,37 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+
+.inventory-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.status-badge,
+.freezer-badge {
+  min-height: 2rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.28rem 0.6rem;
+  background: rgba(18, 50, 68, 0.08);
+  color: var(--text-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.status-taken_out {
+  background: rgba(177, 70, 60, 0.12);
+  color: #8d342c;
 }
 
 .inventory-copy {
@@ -1406,7 +1468,25 @@
   .field-group input,
   .field-group select,
   .search-input {
+    min-height: 3rem;
     padding: 0.85rem 0.95rem;
+  }
+
+  .pill-chip,
+  .filter-chip,
+  .primary-button,
+  .secondary-button,
+  .ghost-button {
+    min-height: 2.75rem;
+  }
+
+  .inventory-card-footer {
+    align-items: stretch;
+    /* flex-direction: column-reverse; */
+  }
+
+  .inventory-badges {
+    justify-content: flex-start;
   }
 
   .quantity-inline {
@@ -1521,9 +1601,10 @@
     padding: 0.24rem 0.52rem;
   }
 
-  .card-actions .secondary-button,
+.card-actions .secondary-button,
   .card-actions .ghost-button {
-    padding: 0.42rem 0.6rem;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.7rem;
     font-size: 0.8rem;
     white-space: nowrap;
     width: auto;
@@ -1636,5 +1717,16 @@
     width: 1.35rem;
     height: 1.35rem;
     font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

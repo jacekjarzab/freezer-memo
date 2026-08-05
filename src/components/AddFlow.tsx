@@ -286,8 +286,10 @@ export function AddFlow({
                       />
                     </div>
                     <div className="field-group quantity-unit-group">
-                      <label>{t('fields.quantityUnit')}</label>
-                      <div className="pill-row">
+                      <span className="field-label" id="quantity-unit-label">
+                        {t('fields.quantityUnit')}
+                      </span>
+                      <div className="pill-row" aria-labelledby="quantity-unit-label" role="group">
                         {draft.quantityType === 'weight' ? (
                           weightUnits.map((unit) => (
                             <button
@@ -325,8 +327,10 @@ export function AddFlow({
             {addScreen === 'notes' ? (
               <div className="step-content">
                 <div className="field-group">
-                  <label>{t('fields.freezer')}</label>
-                  <div className="pill-row">
+                  <span className="field-label" id="freezer-label">
+                    {t('fields.freezer')}
+                  </span>
+                  <div className="pill-row" aria-labelledby="freezer-label" role="group">
                     {freezerKeys.map((key) => (
                       <button
                         className={
