@@ -1,5 +1,6 @@
 import type { ChangeEvent, RefObject } from 'react';
 import type { TFunction } from 'i18next';
+import { HouseholdSyncPanel } from './HouseholdSyncPanel';
 
 interface SettingsViewProps {
   inputRef: RefObject<HTMLInputElement | null>;
@@ -105,6 +106,7 @@ export function SettingsView({
           </p>
         ) : null}
       </section>
+      <HouseholdSyncPanel t={t} />
     </section>
   );
 }

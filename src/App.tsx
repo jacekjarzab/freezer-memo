@@ -44,6 +44,7 @@ import {
   presetToDraft,
   sortPresets,
 } from './lib/presets';
+import { getSyncMetadata } from './lib/sync/outbox';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -134,6 +135,7 @@ function App() {
     [],
   );
   const presets = useLiveQuery(async () => db.presets.toArray(), [], []);
+  const syncMetadata = useLiveQuery(getSyncMetadata, []);
   const sortedPresets = useMemo(() => sortPresets(presets ?? []), [presets]);
   const recentItems = useMemo(() => {
     const seen = new Set<string>();
@@ -672,6 +674,16 @@ function App() {
       {operationNotice ? (
         <p className="backup-notice error" role="alert">
           {operationNotice}
+        </p>
+      ) : null}
+      {syncMetadata?.migrationState === 'pending' ? (
+        <p className="backup-notice success" role="status">
+          {t('account.migrationReady')}
+        </p>
+      ) : null}
+      {syncMetadata?.migrationState === 'failed' ? (
+        <p className="backup-notice error" role="alert">
+          {t('account.syncFailed')}
         </p>
       ) : null}
       {presetNotice ? (
