@@ -10,22 +10,36 @@ export function HouseholdSyncPanel({ t }: { t: TFunction }) {
   const [email, setEmail] = useState('');
   const [householdName, setHouseholdName] = useState('');
   const [inviteToken, setInviteToken] = useState('');
-  const [createdInvite, setCreatedInvite] = useState<{ id: string; token: string } | null>(null);
+  const [createdInvite, setCreatedInvite] = useState<{ id: string; token: string; expiresAt: string } | null>(null);
+  const [outstandingInvites, setOutstandingInvites] = useState<Array<{ id: string; expiresAt: string }>>([]);
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [householdId, setHouseholdId] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ key: string; error: boolean } | null>(null);
   useEffect(() => {
     if (!client) return;
-    void Promise.all([new SupabaseAuthAdapter(client).getSession(), getSyncMetadata()]).then(([session, metadata]) => {
-      setSessionEmail(session?.email ?? null); setHouseholdId(metadata.householdId);
-    }).catch(() => setNotice({ key: 'account.errors.unavailable', error: true }));
+    void Promise.all([new SupabaseAuthAdapter(client).getSession(), getSyncMetadata()]).then(async ([session, metadata]) => {
+      setSessionEmail(session?.email ?? null);
+      if (!session) {
+        setHouseholdId(metadata.householdId);
+        return;
+      }
+      const household = await new SupabaseHouseholdAdapter(client).discoverHousehold();
+      if (household) {
+        await saveSyncMetadata({ householdId: household.id, migrationState: 'pending', cursor: null });
+        setHouseholdId(household.id);
+        setOutstandingInvites(await new SupabaseHouseholdAdapter(client).listOutstandingInvites(household.id));
+      } else {
+        setHouseholdId(null);
+        setOutstandingInvites([]);
+      }
+    }).catch((error) => showError(error));
   }, [client]);
   const showError = (error: unknown) => setNotice({ key: `account.errors.${error instanceof SupabaseAdapterError ? error.kind : 'generic'}`, error: true });
   const requestLink = async () => { if (!client || !email.trim()) return; try { await new SupabaseAuthAdapter(client).requestMagicLink(email.trim(), window.location.origin); setNotice({ key: 'account.magicLinkSent', error: false }); } catch (error) { showError(error); } };
   const signOut = async () => { if (!client) return; try { await new SupabaseAuthAdapter(client).signOut(); setSessionEmail(null); setHouseholdId(null); await saveSyncMetadata({ householdId: null, migrationState: 'local' }); setNotice({ key: 'account.signedOut', error: false }); } catch (error) { showError(error); } };
   const createHousehold = async () => { if (!client || !householdName.trim()) return; try { const result = await new SupabaseHouseholdAdapter(client).createHousehold(householdName.trim()); await saveSyncMetadata({ householdId: result.id, migrationState: 'pending', cursor: null }); setHouseholdId(result.id); setHouseholdName(''); setNotice({ key: 'account.householdCreated', error: false }); } catch (error) { showError(error); } };
-  const createInvite = async () => { if (!client || !householdId) return; try { const result = await new SupabaseHouseholdAdapter(client).createInvite(householdId); setCreatedInvite(result); setNotice({ key: 'account.inviteCreated', error: false }); } catch (error) { showError(error); } };
-  const revokeInvite = async () => { if (!client || !createdInvite) return; try { await new SupabaseHouseholdAdapter(client).revokeInvite(createdInvite.id); setCreatedInvite(null); setNotice({ key: 'account.inviteRevoked', error: false }); } catch (error) { showError(error); } };
+  const createInvite = async () => { if (!client || !householdId) return; try { const result = await new SupabaseHouseholdAdapter(client).createInvite(householdId); setCreatedInvite(result); setOutstandingInvites((invites) => [{ id: result.id, expiresAt: result.expiresAt }, ...invites]); setNotice({ key: 'account.inviteCreated', error: false }); } catch (error) { showError(error); } };
+  const revokeInvite = async (inviteId: string) => { if (!client) return; try { await new SupabaseHouseholdAdapter(client).revokeInvite(inviteId); setCreatedInvite((invite) => invite?.id === inviteId ? null : invite); setOutstandingInvites((invites) => invites.filter((invite) => invite.id !== inviteId)); setNotice({ key: 'account.inviteRevoked', error: false }); } catch (error) { showError(error); } };
   const acceptInvite = async () => { if (!client || !inviteToken.trim()) return; try { const id = await new SupabaseHouseholdAdapter(client).acceptInvite(inviteToken.trim()); await saveSyncMetadata({ householdId: id, migrationState: 'pending', cursor: null }); setHouseholdId(id); setInviteToken(''); setNotice({ key: 'account.inviteAccepted', error: false }); } catch (error) { showError(error); } };
   const copyInvite = async () => {
     if (!createdInvite) return;
@@ -40,7 +54,7 @@ export function HouseholdSyncPanel({ t }: { t: TFunction }) {
     <div><p className="section-label" id="settings-account-title">{t('account.title')}</p><p className="panel-copy">{t('account.subtitle')}</p></div>
     {!client ? <p className="backup-notice error" role="alert">{t('account.errors.missingConfiguration')}</p> : null}
     {client && !sessionEmail ? <div className="household-form"><label>{t('account.email')}<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" /></label><button className="primary-button" type="button" onClick={() => void requestLink()}>{t('account.requestMagicLink')}</button></div> : null}
-    {client && sessionEmail ? <><p className="panel-copy">{t('account.signedInAs', { email: sessionEmail })}</p>{!householdId ? <div className="household-form"><label>{t('account.householdName')}<input value={householdName} onChange={(event) => setHouseholdName(event.target.value)} /></label><button className="primary-button" type="button" onClick={() => void createHousehold()}>{t('account.createHousehold')}</button></div> : <p className="backup-notice success" role="status">{t('account.householdReady')}</p>}<div className="household-form"><label>{t('account.inviteToken')}<input value={inviteToken} onChange={(event) => setInviteToken(event.target.value)} /></label><button className="secondary-button" type="button" onClick={() => void acceptInvite()}>{t('account.acceptInvite')}</button></div>{householdId ? <div className="household-actions"><button className="secondary-button" type="button" onClick={() => void createInvite()}>{t('account.createInvite')}</button>{createdInvite ? <><code className="invite-token">{createdInvite.token}</code><button className="secondary-button" type="button" onClick={() => void copyInvite()}>{t('account.copyInvite')}</button><button className="ghost-button" type="button" onClick={() => void revokeInvite()}>{t('account.revokeInvite')}</button></> : null}</div> : null}<button className="ghost-button" type="button" onClick={() => void signOut()}>{t('account.signOut')}</button></> : null}
+    {client && sessionEmail ? <><p className="panel-copy">{t('account.signedInAs', { email: sessionEmail })}</p>{!householdId ? <div className="household-form"><label>{t('account.householdName')}<input value={householdName} onChange={(event) => setHouseholdName(event.target.value)} /></label><button className="primary-button" type="button" onClick={() => void createHousehold()}>{t('account.createHousehold')}</button></div> : <p className="backup-notice success" role="status">{t('account.householdReady')}</p>}<div className="household-form"><label>{t('account.inviteToken')}<input value={inviteToken} onChange={(event) => setInviteToken(event.target.value)} /></label><button className="secondary-button" type="button" onClick={() => void acceptInvite()}>{t('account.acceptInvite')}</button></div>{householdId ? <div className="household-actions"><button className="secondary-button" type="button" onClick={() => void createInvite()}>{t('account.createInvite')}</button>{createdInvite ? <><code className="invite-token">{createdInvite.token}</code><button className="secondary-button" type="button" onClick={() => void copyInvite()}>{t('account.copyInvite')}</button><button className="ghost-button" type="button" onClick={() => void revokeInvite(createdInvite.id)}>{t('account.revokeInvite')}</button></> : null}{outstandingInvites.filter((invite) => invite.id !== createdInvite?.id).map((invite) => <div key={invite.id}><span>{new Date(invite.expiresAt).toLocaleDateString()}</span><button className="ghost-button" type="button" onClick={() => void revokeInvite(invite.id)}>{t('account.revokeInvite')}</button></div>)}</div> : null}<button className="ghost-button" type="button" onClick={() => void signOut()}>{t('account.signOut')}</button></> : null}
     {notice ? <p className={notice.error ? 'backup-notice error' : 'backup-notice success'} role={notice.error ? 'alert' : 'status'}>{t(notice.key)}</p> : null}
   </section>;
 }

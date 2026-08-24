@@ -118,4 +118,4 @@ Status legend:
 - [ ] Bulk clear history
 - [ ] Age indicators / freezer duration
 - [ ] Recipe or usage suggestions
-- [-] Shared household sync (inventory-only MVP; magic-link auth, Supabase Free tier, offline outbox sync; Supabase schema/RLS migration defined)
+- [-] Shared household sync (inventory-only MVP; magic-link auth, Supabase Free tier, offline outbox sync; Supabase schema/RLS migration defined; client boundary corrections complete, pending server provisioning and integration validation)

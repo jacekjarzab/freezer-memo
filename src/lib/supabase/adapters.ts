@@ -8,6 +8,8 @@ export type HouseholdActionError = 'forbidden' | 'invite_invalid' | 'unavailable
 export interface HouseholdPort {
   createHousehold(name: string): Promise<{ id: string; name: string }>;
   createInvite(householdId: string): Promise<{ id: string; token: string; expiresAt: string }>;
+  discoverHousehold(): Promise<{ id: string; name: string } | null>;
+  listOutstandingInvites(householdId: string): Promise<Array<{ id: string; expiresAt: string }>>;
   revokeInvite(inviteId: string): Promise<void>;
   acceptInvite(token: string): Promise<string>;
 }
@@ -46,6 +48,9 @@ function unwrapRpcRow(data: unknown): RemoteRow {
 }
 
 function toItem(row: RemoteRow): FreezerItemRecord {
+  if (typeof row.id !== 'string' || !row.id) {
+    throw new SupabaseAdapterError('invalid', 'Supabase returned an item without an id');
+  }
   return {
     id: String(row.id), status: row.status === 'taken_out' ? 'taken_out' : 'in_freezer',
     categoryKey: String(row.category_key) as FreezerItemRecord['categoryKey'], cutKey: String(row.cut_key),
@@ -95,7 +100,7 @@ export class SupabaseInventoryAdapter implements RemoteInventoryStore {
       const kind = classifySupabaseError(error);
       return { accepted: false, item: null, error: kind === 'invite_invalid' ? 'invalid' : kind };
     }
-    return { accepted: true, item: data ? toItem(data as RemoteRow) : null };
+    return { accepted: true, item: data ? toItem(unwrapRpcRow(data)) : null };
   }
 }
 
@@ -113,6 +118,31 @@ export class SupabaseHouseholdAdapter implements HouseholdPort {
     if (error) throwAdapterError(error);
     const row = unwrapRpcRow(data);
     return { id: String(row.invite_id), token: String(row.invite_token), expiresAt: String(row.expires_at) };
+  }
+  async discoverHousehold() {
+    const { data, error } = await this.client.from('households').select('id, name').maybeSingle();
+    if (error) throwAdapterError(error);
+    if (!data) return null;
+    const row = unwrapRpcRow(data);
+    return { id: String(row.id), name: String(row.name) };
+  }
+  async listOutstandingInvites(householdId: string) {
+    const { data, error } = await this.client
+      .from('household_invites')
+      .select('id, expires_at')
+      .eq('household_id', householdId)
+      .is('revoked_at', null)
+      .is('accepted_at', null)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false });
+    if (error) throwAdapterError(error);
+    return (data ?? []).map((row) => {
+      const invite = unwrapRpcRow(row);
+      if (typeof invite.id !== 'string' || typeof invite.expires_at !== 'string') {
+        throw new SupabaseAdapterError('invalid', 'Supabase returned an invalid invite');
+      }
+      return { id: invite.id, expiresAt: invite.expires_at };
+    });
   }
   async revokeInvite(inviteId: string) {
     const { error } = await this.client.rpc('revoke_household_invite', { target_invite_id: inviteId });
