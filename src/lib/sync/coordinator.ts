@@ -8,10 +8,12 @@ export async function runForegroundSync(
   remote: RemoteInventoryStore,
   connectivity: ConnectivityPort,
   now = new Date(),
+  allowMigration = false,
 ): Promise<SyncCoordinatorResult> {
   if (!connectivity.isOnline()) return { status: 'offline' };
   const metadata = await getSyncMetadata();
   if (metadata.migrationState === 'local' || !metadata.householdId) return { status: 'up_to_date' };
+  if (metadata.migrationState !== 'complete' && !allowMigration) return { status: 'up_to_date' };
   const householdId = metadata.householdId;
   try {
     const pending = await listPendingOutbox(householdId, now.toISOString());

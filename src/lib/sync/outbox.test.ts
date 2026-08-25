@@ -8,6 +8,7 @@ import {
   enqueueItemMutation,
   listPendingOutbox,
 } from './outbox';
+import { migrateLocalInventory } from './repository';
 
 const item: FreezerItemRecord = {
   id: 'item-1',
@@ -117,5 +118,18 @@ describe('sync outbox contracts', () => {
 
     await acknowledgeOutboxOperation(otherHousehold.id);
     expect(await db.outbox.get(otherHousehold.id)).toBeUndefined();
+  });
+
+  it('makes migration single-shot and leaves retries on the existing queue', async () => {
+    await db.freezerItems.clear();
+    await db.outbox.clear();
+    await db.syncMetadata.clear();
+    await db.syncMetadata.put({ id: 'current', householdId: 'household-a', cursor: null, lastSyncedAt: null, migrationState: 'pending', nextOutboxSequence: 0 });
+    await db.freezerItems.put({ ...item, id: 'migration-item' });
+
+    await expect(migrateLocalInventory('household-a')).resolves.toBe(1);
+    await expect(migrateLocalInventory('household-a')).resolves.toBe(0);
+    expect(await db.outbox.count()).toBe(1);
+    expect(await db.syncMetadata.get('current')).toMatchObject({ migrationState: 'migrating' });
   });
 });

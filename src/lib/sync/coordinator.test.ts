@@ -14,6 +14,15 @@ beforeEach(async () => {
 });
 
 describe('foreground sync coordinator', () => {
+  it('does not sync or complete a pending household before explicit migration', async () => {
+    await saveSyncMetadata({ migrationState: 'pending' });
+    const remote = { push: vi.fn(), pull: vi.fn() };
+    await expect(runForegroundSync(remote, online)).resolves.toEqual({ status: 'up_to_date' });
+    expect(remote.push).not.toHaveBeenCalled();
+    expect(remote.pull).not.toHaveBeenCalled();
+    expect(await db.syncMetadata.get('current')).toMatchObject({ migrationState: 'pending' });
+  });
+
   it('pushes in order, acknowledges, pulls, and advances the cursor', async () => {
     await db.freezerItems.put(item);
     await enqueueItemMutation(item, 'household-1');

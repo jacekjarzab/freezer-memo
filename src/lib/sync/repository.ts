@@ -39,19 +39,22 @@ export async function deleteLocalItem(id: string): Promise<FreezerItemRecord> {
 }
 
 export async function migrateLocalInventory(householdId: string): Promise<number> {
-  const metadata = await getSyncMetadata();
-  if (metadata.migrationState !== 'pending' || metadata.householdId !== householdId) {
-    throw new Error('invalid_migration_state');
-  }
-  const items = await db.freezerItems.toArray();
+  let queued = 0;
   await db.transaction('rw', db.freezerItems, db.outbox, db.syncMetadata, async () => {
+    const metadata = await db.syncMetadata.get('current');
+    if (!metadata || metadata.householdId !== householdId) throw new Error('invalid_migration_state');
+    if (metadata.migrationState === 'migrating') return;
+    if (metadata.migrationState !== 'pending') throw new Error('invalid_migration_state');
+    await db.syncMetadata.put({ ...metadata, migrationState: 'migrating' });
+    const items = await db.freezerItems.toArray();
     for (const item of items) {
       const sharedItem = { ...item, householdId, serverRevision: null };
       await db.freezerItems.put(sharedItem);
       await enqueueItemMutation(sharedItem, householdId);
+      queued += 1;
     }
   });
-  return items.length;
+  return queued;
 }
 
 export async function applyPulledItems(items: FreezerItemRecord[]): Promise<void> {

@@ -32,7 +32,7 @@ export interface SyncMetadataRecord {
   householdId: string | null;
   cursor: string | null;
   lastSyncedAt: string | null;
-  migrationState: 'local' | 'pending' | 'complete' | 'failed';
+  migrationState: 'local' | 'pending' | 'migrating' | 'complete' | 'failed';
   nextOutboxSequence: number;
 }
 
