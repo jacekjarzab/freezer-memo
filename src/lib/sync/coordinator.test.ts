@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { db } from '../db';
 import { enqueueItemMutation, saveSyncMetadata } from './outbox';
 import { runForegroundSync } from './coordinator';
+import { migrateLocalInventory } from './repository';
 
 const item = { id: 'item-1', status: 'in_freezer' as const, categoryKey: 'chicken' as const, cutKey: 'breast', freezerKey: 'home' as const, quantityType: 'pieces' as const, quantityValue: 1, quantityUnit: 'pcs', notes: '', frozenAt: '2026-08-01', takenOutAt: null, createdAt: '2026-08-01', updatedAt: '2026-08-01', householdId: 'household-1', serverRevision: null, deletedAt: null };
 const online = { isOnline: () => true, subscribe: vi.fn(() => () => {}) };
@@ -21,6 +22,16 @@ describe('foreground sync coordinator', () => {
     expect(remote.push).not.toHaveBeenCalled();
     expect(remote.pull).not.toHaveBeenCalled();
     expect(await db.syncMetadata.get('current')).toMatchObject({ migrationState: 'pending' });
+  });
+
+  it('resumes a queued migration on reconnect without another migration click', async () => {
+    await saveSyncMetadata({ migrationState: 'pending' });
+    await db.freezerItems.put(item);
+    await migrateLocalInventory('household-1');
+    const remote = { push: vi.fn().mockResolvedValue({ accepted: true, item: { ...item, serverRevision: 1 } }), pull: vi.fn().mockResolvedValue({ items: [], nextCursor: null }) };
+    await expect(runForegroundSync(remote, online)).resolves.toMatchObject({ status: 'up_to_date' });
+    expect(remote.push).toHaveBeenCalledTimes(1);
+    expect(await db.syncMetadata.get('current')).toMatchObject({ migrationState: 'complete' });
   });
 
   it('pushes in order, acknowledges, pulls, and advances the cursor', async () => {

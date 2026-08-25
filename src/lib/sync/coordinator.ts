@@ -13,7 +13,8 @@ export async function runForegroundSync(
   if (!connectivity.isOnline()) return { status: 'offline' };
   const metadata = await getSyncMetadata();
   if (metadata.migrationState === 'local' || !metadata.householdId) return { status: 'up_to_date' };
-  if (metadata.migrationState !== 'complete' && !allowMigration) return { status: 'up_to_date' };
+  if (metadata.migrationState === 'pending' && !allowMigration) return { status: 'up_to_date' };
+  if (metadata.migrationState === 'failed') return { status: 'error', reason: 'forbidden' };
   const householdId = metadata.householdId;
   try {
     const pending = await listPendingOutbox(householdId, now.toISOString());
