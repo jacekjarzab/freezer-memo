@@ -45,6 +45,7 @@ import {
   sortPresets,
 } from './lib/presets';
 import { getSyncMetadata } from './lib/sync/outbox';
+import { createLocalItem, updateLocalItem } from './lib/sync/repository';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -340,7 +341,7 @@ function App() {
       notes: draft.notes,
     };
     try {
-      await db.freezerItems.add({
+      await createLocalItem({
         id: crypto.randomUUID(),
         status: 'in_freezer',
         categoryKey: normalized.categoryKey,
@@ -366,7 +367,7 @@ function App() {
   async function handleTakeOut(item: FreezerItemRecord) {
     const takingOut = item.status === 'in_freezer';
     try {
-      const updated = await db.freezerItems.update(item.id, {
+      const updated = await updateLocalItem(item.id, {
         status: takingOut ? 'taken_out' : 'in_freezer',
         takenOutAt: takingOut ? new Date().toISOString() : null,
         updatedAt: new Date().toISOString(),
@@ -387,7 +388,7 @@ function App() {
   async function handleUndoTakeOut() {
     if (!pendingUndoItemId) return;
     try {
-      const updated = await db.freezerItems.update(pendingUndoItemId, {
+      const updated = await updateLocalItem(pendingUndoItemId, {
         status: 'in_freezer',
         takenOutAt: null,
         updatedAt: new Date().toISOString(),
@@ -501,7 +502,7 @@ function App() {
       return;
     }
     try {
-      const updated = await db.freezerItems.update(editingItem.id, {
+      const updated = await updateLocalItem(editingItem.id, {
         categoryKey: editDraft.categoryKey,
         cutKey: editDraft.cutKey,
         freezerKey: editDraft.freezerKey,
