@@ -39,26 +39,29 @@ export function createSharedSyncServiceFor(
 ): SharedSyncService {
   let status: SyncStatus = connectivity.isOnline() ? 'up_to_date' : 'offline';
   let running: Promise<SyncCoordinatorResult> | null = null;
-  let rerunRequested = false;
+  let queued: { allowMigration: boolean; promise: Promise<SyncCoordinatorResult> } | null = null;
   const listeners = new Set<() => void>();
   const notify = () => listeners.forEach((listener) => listener());
   const syncNow = (allowMigration = false): Promise<SyncCoordinatorResult> => {
     if (running) {
-      rerunRequested = true;
-      return running;
+      if (queued) {
+        queued.allowMigration ||= allowMigration;
+        return queued.promise;
+      }
+      const request = { allowMigration, promise: undefined as unknown as Promise<SyncCoordinatorResult> };
+      request.promise = running.then(() => {
+        queued = null;
+        return syncNow(request.allowMigration);
+      });
+      queued = request;
+      return request.promise;
     }
     status = 'syncing';
     notify();
     running = runForegroundSync(remote, connectivity, new Date(), allowMigration)
       .then((result) => { status = result.status; notify(); return result; })
       .catch((error: unknown) => { status = 'error'; notify(); return { status: 'error' as const, reason: error instanceof Error ? error.message : 'sync_failed' }; })
-      .finally(() => {
-        running = null;
-        if (rerunRequested) {
-          rerunRequested = false;
-          void syncNow();
-        }
-      });
+      .finally(() => { running = null; });
     return running!;
   };
   return {

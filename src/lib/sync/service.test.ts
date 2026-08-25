@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { db } from '../db';
 import { saveSyncMetadata } from './outbox';
-import { createLocalItem } from './repository';
+import { createLocalItem, migrateLocalInventory } from './repository';
 import { createSharedSyncServiceFor, getSyncIndicatorTone } from './service';
 import type { ConnectivityPort, RemoteInventoryStore } from './ports';
 
@@ -40,6 +40,35 @@ describe('app-level shared sync service', () => {
     await vi.waitFor(() => expect(service.getStatus()).toBe('up_to_date'));
 
     expect(push).toHaveBeenCalledOnce();
+    stop();
+  });
+
+  it('does not lose an explicit migration request behind an active sync', async () => {
+    await db.freezerItems.clear();
+    await db.outbox.clear();
+    await saveSyncMetadata({ householdId: 'household-1', migrationState: 'complete', cursor: null, nextOutboxSequence: 0 });
+    await db.freezerItems.put(item);
+    let resolvePull!: (result: { items: never[]; nextCursor: string }) => void;
+    const pull = new Promise<{ items: never[]; nextCursor: string }>((resolve) => {
+      resolvePull = resolve;
+    });
+    const push = vi.fn().mockResolvedValue({ accepted: true, item: null });
+    const remote: RemoteInventoryStore = {
+      push,
+      pull: vi.fn().mockReturnValue(pull),
+    };
+    const service = createSharedSyncServiceFor(remote, connectivity());
+    const stop = service.start();
+    await vi.waitFor(() => expect(remote.pull).toHaveBeenCalledOnce());
+
+    await saveSyncMetadata({ migrationState: 'pending' });
+    await migrateLocalInventory('household-1');
+    const migration = service.syncNow(true);
+    resolvePull({ items: [], nextCursor: '1' });
+    await expect(migration).resolves.toMatchObject({ status: 'up_to_date' });
+
+    expect(push).toHaveBeenCalledOnce();
+    expect(await db.syncMetadata.get('current')).toMatchObject({ migrationState: 'complete' });
     stop();
   });
 });
