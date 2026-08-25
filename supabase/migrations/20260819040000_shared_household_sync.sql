@@ -174,8 +174,8 @@ begin
   end if;
   expires_at := now() + valid_for;
   insert into public.household_invites (household_id, token_hash, expires_at, created_by)
-  values (target_household_id, encode(digest(raw_token::text, 'sha256'), 'hex'), expires_at, auth.uid());
-  invite_id := (select id from public.household_invites where token_hash = encode(digest(raw_token::text, 'sha256'), 'hex'));
+  values (target_household_id, encode(extensions.digest(raw_token::text, 'sha256'), 'hex'), expires_at, auth.uid());
+  invite_id := (select id from public.household_invites where token_hash = encode(extensions.digest(raw_token::text, 'sha256'), 'hex'));
   invite_token := raw_token;
   return next;
 end;
@@ -193,7 +193,7 @@ begin
   if auth.uid() is null then raise exception 'authentication required'; end if;
   insert into public.profiles (id) values (auth.uid()) on conflict (id) do nothing;
   select * into invite from public.household_invites
-  where token_hash = encode(digest(invite_token::text, 'sha256'), 'hex')
+  where token_hash = encode(extensions.digest(invite_token::text, 'sha256'), 'hex')
     and revoked_at is null and accepted_at is null and expires_at > now()
   for update;
   if not found then raise exception 'invite is invalid, expired, or revoked'; end if;
