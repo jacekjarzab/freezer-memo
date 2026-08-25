@@ -46,6 +46,8 @@ import {
 } from './lib/presets';
 import { getSyncMetadata } from './lib/sync/outbox';
 import { createLocalItem, updateLocalItem } from './lib/sync/repository';
+import { createBrowserSupabaseClient } from './lib/supabase/client';
+import { getSyncIndicatorTone, useSharedSync } from './lib/sync/service';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -129,6 +131,8 @@ function App() {
     (() => Promise<void>) | null
   >(null);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [supabaseClient] = useState(createBrowserSupabaseClient);
+  const { service: sharedSync, status: syncStatus } = useSharedSync(supabaseClient);
   const deferredSearch = useDeferredValue(search);
   const items = useLiveQuery(
     async () => db.freezerItems.orderBy('createdAt').reverse().toArray(),
@@ -660,6 +664,11 @@ function App() {
               <h1 className="app-name">{t('app.name')}</h1>
               <span className="app-version">{appVersion}</span>
             </div>
+            {syncMetadata?.migrationState === 'complete' && syncMetadata.householdId ? (
+              <p className={`sync-indicator sync-indicator--${getSyncIndicatorTone(syncStatus)}`} role="status">
+                {t(`account.syncStatus.${syncStatus === 'retrying' || syncStatus === 'error' ? 'error' : syncStatus}`)}
+              </p>
+            ) : null}
           </div>
         </div>
         <button
@@ -815,6 +824,8 @@ function App() {
           importFile={(event) => void handleImportFile(event)}
           onBack={() => setActiveView('inventory')}
           updateLanguage={updateLanguage}
+          syncStatus={syncStatus}
+          syncNow={(allowMigration) => sharedSync?.syncNow(allowMigration) ?? Promise.resolve({ status: 'offline' as const })}
           t={t}
         />
       )}

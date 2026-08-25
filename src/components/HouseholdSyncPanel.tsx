@@ -1,15 +1,13 @@
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { TFunction } from 'i18next';
 import { getSyncMetadata, saveSyncMetadata } from '../lib/sync/outbox';
 import { migrateLocalInventory } from '../lib/sync/repository';
-import { runForegroundSync } from '../lib/sync/coordinator';
 import { createBrowserSupabaseClient } from '../lib/supabase/client';
-import { SupabaseAdapterError, SupabaseAuthAdapter, SupabaseHouseholdAdapter, SupabaseInventoryAdapter } from '../lib/supabase/adapters';
+import { SupabaseAdapterError, SupabaseAuthAdapter, SupabaseHouseholdAdapter } from '../lib/supabase/adapters';
+import type { SyncStatus } from '../lib/sync/ports';
 
-const browserConnectivity = { isOnline: () => navigator.onLine, subscribe: (listener: (online: boolean) => void) => { const online = () => listener(true); const offline = () => listener(false); window.addEventListener('online', online); window.addEventListener('offline', offline); return () => { window.removeEventListener('online', online); window.removeEventListener('offline', offline); }; } };
-
-export function HouseholdSyncPanel({ t }: { t: TFunction }) {
+export function HouseholdSyncPanel({ t, syncStatus, syncNow }: { t: TFunction; syncStatus: SyncStatus; syncNow: (allowMigration?: boolean) => Promise<{ status: SyncStatus; reason?: string }> }) {
   // Keep one browser client for the panel; recreating it on every render retriggers auth loading.
   const [client] = useState(createBrowserSupabaseClient);
   const [email, setEmail] = useState('');
@@ -23,7 +21,6 @@ export function HouseholdSyncPanel({ t }: { t: TFunction }) {
   const [householdId, setHouseholdId] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ key: string; error: boolean } | null>(null);
   const syncMetadata = useLiveQuery(getSyncMetadata, []);
-  const [syncStatus, setSyncStatus] = useState<'offline' | 'syncing' | 'up_to_date' | 'retrying' | 'error'>('offline');
   useEffect(() => {
     if (!client) return;
     void Promise.all([new SupabaseAuthAdapter(client).getSession(), getSyncMetadata()]).then(async ([session, metadata]) => {
@@ -46,28 +43,11 @@ export function HouseholdSyncPanel({ t }: { t: TFunction }) {
       }
     }).catch((error) => showError(error));
   }, [client]);
-  const syncNow = async () => {
-    if (!client || !householdId) return;
-    setSyncStatus('syncing');
-    const result = await runForegroundSync(new SupabaseInventoryAdapter(client), browserConnectivity);
-    setSyncStatus(result.status);
-    if (result.status === 'error') setNotice({ key: result.reason === 'forbidden' ? 'account.errors.forbidden' : 'account.syncFailed', error: true });
-  };
-  const syncNowEvent = useEffectEvent(syncNow);
-  useEffect(() => {
-    if (!householdId || !client) return;
-    const unsubscribe = browserConnectivity.subscribe((online) => { if (online) void syncNowEvent(); else setSyncStatus('offline'); });
-    void syncNowEvent();
-    const refresh = () => void syncNowEvent();
-    window.addEventListener('focus', refresh);
-    return () => { unsubscribe(); window.removeEventListener('focus', refresh); };
-  }, [client, householdId]);
   const migrate = async () => {
     if (!householdId || !client) return;
     try {
       await migrateLocalInventory(householdId);
-      const result = await runForegroundSync(new SupabaseInventoryAdapter(client), browserConnectivity, new Date(), true);
-      setSyncStatus(result.status);
+      const result = await syncNow(true);
       if (result.status === 'up_to_date') {
         await saveSyncMetadata({ migrationState: 'complete' });
         setNotice({ key: 'account.migrationComplete', error: false });

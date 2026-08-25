@@ -1,6 +1,17 @@
 import { db, type FreezerItemRecord, type OutboxOperationKind } from '../db';
 import { enqueueItemMutation, getSyncMetadata } from './outbox';
 
+const sharedMutationListeners = new Set<() => void>();
+
+export function subscribeToSharedMutations(listener: () => void): () => void {
+  sharedMutationListeners.add(listener);
+  return () => sharedMutationListeners.delete(listener);
+}
+
+function notifySharedMutation() {
+  for (const listener of sharedMutationListeners) listener();
+}
+
 async function saveMutation(
   item: FreezerItemRecord,
   kind: OutboxOperationKind = 'upsert_item',
@@ -16,6 +27,7 @@ async function saveMutation(
     await db.freezerItems.put({ ...item, householdId });
     await enqueueItemMutation({ ...item, householdId }, householdId, kind);
   });
+  notifySharedMutation();
   return { ...item, householdId };
 }
 
