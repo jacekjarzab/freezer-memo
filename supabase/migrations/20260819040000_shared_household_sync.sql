@@ -156,6 +156,25 @@ begin
 end;
 $$;
 
+create function public.remove_household_member(target_household_id uuid, target_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then raise exception 'authentication required'; end if;
+  if target_user_id = auth.uid() then raise exception 'owners cannot remove themselves'; end if;
+  if not exists (
+    select 1 from public.household_members
+    where household_id = target_household_id and user_id = auth.uid() and role = 'owner'
+  ) then raise exception 'only household owners may remove members'; end if;
+  delete from public.household_members
+  where household_id = target_household_id and user_id = target_user_id and role = 'member';
+  if not found then raise exception 'member not found or cannot be removed'; end if;
+end;
+$$;
+
 create function public.create_household_invite(target_household_id uuid, valid_for interval default interval '7 days')
 returns table (invite_id uuid, invite_token uuid, expires_at timestamptz)
 language plpgsql
@@ -274,4 +293,5 @@ grant select on public.profiles, public.households, public.household_members,
   public.household_invites, public.freezer_items, public.inventory_mutations to authenticated;
 grant execute on function public.is_active_household_member(uuid), public.create_household(text),
   public.create_household_invite(uuid, interval), public.revoke_household_invite(uuid),
+  public.remove_household_member(uuid, uuid),
   public.accept_household_invite(uuid), public.apply_freezer_mutation(uuid, uuid, text, jsonb) to authenticated;

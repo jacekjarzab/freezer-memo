@@ -47,6 +47,24 @@ describe('Supabase household adapter mapping', () => {
     ]);
     expect(inviteQuery.select).toHaveBeenCalledWith('id, expires_at');
   });
+
+  it('lists members and removes them only through the dedicated RPC', async () => {
+    const memberQuery = {
+      select: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({
+        data: [{ user_id: 'owner-1', role: 'owner' }, { user_id: 'member-1', role: 'member' }], error: null,
+      }),
+    };
+    const rpc = vi.fn().mockResolvedValue({ error: null });
+    const adapter = new SupabaseHouseholdAdapter({ from: vi.fn().mockReturnValue(memberQuery), rpc } as never);
+
+    await expect(adapter.listMembers('household-1')).resolves.toEqual([
+      { userId: 'owner-1', role: 'owner' }, { userId: 'member-1', role: 'member' },
+    ]);
+    await expect(adapter.removeMember('household-1', 'member-1')).resolves.toBeUndefined();
+    expect(rpc).toHaveBeenCalledWith('remove_household_member', {
+      target_household_id: 'household-1', target_user_id: 'member-1',
+    });
+  });
 });
 
 describe('Supabase inventory adapter mapping', () => {

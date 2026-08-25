@@ -10,7 +10,9 @@ export interface HouseholdPort {
   createInvite(householdId: string): Promise<{ id: string; token: string; expiresAt: string }>;
   discoverHousehold(): Promise<{ id: string; name: string } | null>;
   listOutstandingInvites(householdId: string): Promise<Array<{ id: string; expiresAt: string }>>;
+  listMembers(householdId: string): Promise<Array<{ userId: string; role: 'owner' | 'member' }>>;
   revokeInvite(inviteId: string): Promise<void>;
+  removeMember(householdId: string, userId: string): Promise<void>;
   acceptInvite(token: string): Promise<string>;
 }
 
@@ -146,6 +148,21 @@ export class SupabaseHouseholdAdapter implements HouseholdPort {
   }
   async revokeInvite(inviteId: string) {
     const { error } = await this.client.rpc('revoke_household_invite', { target_invite_id: inviteId });
+    if (error) throwAdapterError(error);
+  }
+  async listMembers(householdId: string) {
+    const { data, error } = await this.client.from('household_members').select('user_id, role').eq('household_id', householdId);
+    if (error) throwAdapterError(error);
+    return (data ?? []).map((row) => {
+      const member = unwrapRpcRow(row);
+      if (typeof member.user_id !== 'string' || (member.role !== 'owner' && member.role !== 'member')) {
+        throw new SupabaseAdapterError('invalid', 'Supabase returned an invalid household member');
+      }
+      return { userId: member.user_id, role: member.role as 'owner' | 'member' };
+    });
+  }
+  async removeMember(householdId: string, userId: string) {
+    const { error } = await this.client.rpc('remove_household_member', { target_household_id: householdId, target_user_id: userId });
     if (error) throwAdapterError(error);
   }
   async acceptInvite(token: string) {
