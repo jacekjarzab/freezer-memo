@@ -28,10 +28,10 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-public-anon-key
 ```
 
-Never put a Supabase service-role key in `.env`, browser code, or deployed static assets. Apply `supabase/migrations/20260819040000_shared_household_sync.sql` to the project before enabling shared mode. Local-only inventory writes remain local until an explicit migration and atomic outbox workflow are implemented.
+Never put a Supabase service-role key in `.env`, browser code, or deployed static assets. Apply all migrations in `supabase/migrations/` to the project before enabling shared mode. Inventory writes remain local-first; after explicit migration, mutations are queued in the durable outbox and synchronized during foreground, focus, or reconnect refreshes. Presets remain device-local.
 
-## Next Build Steps
+## Remaining Shared Sync Work
 
-- split the guided add flow into step screens/cards optimized for one-handed mobile use
-- add edit item details and JSON export/import
-- improve search and filtering for larger freezer inventories
+- validate two-device offline/reconnect behavior on real devices
+- finish recovery handling for invite, membership, migration, rejected-write, and tombstone edge cases
+- complete production rollout, monitoring, and release smoke validation

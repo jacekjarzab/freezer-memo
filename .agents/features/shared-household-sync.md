@@ -22,8 +22,8 @@ Allow a family to use the same freezer inventory from multiple mobile PWAs while
 - [x] Add Row Level Security so reads and writes require active household membership; never ship service-role credentials to the PWA.
 - [x] Add a `src/lib/sync/` domain boundary for auth, remote storage, connectivity, mutation queue, and conflict resolution.
 - [x] Extend the Dexie schema with household identity, sync metadata, deleted-at tombstones, server version, last-synced time, and a durable outbox.
-- [ ] Preserve local-first writes and route item create, edit, take-out, restore, and delete operations through repository commands that append idempotent outbox mutations.
-- [ ] Implement pull by server cursor, idempotent push with mutation UUIDs, retry handling, and realtime or foreground refresh after remote changes.
+- [x] Preserve local-first writes and route item create, edit, take-out, restore, and delete operations through repository commands that append idempotent outbox mutations.
+- [x] Implement pull by server cursor, idempotent push with mutation UUIDs, retry handling, and foreground refresh after remote changes.
 - [x] Build create-household, sign-in, invite copy/revoke, invite acceptance, owner member removal, and account recovery UI.
 - [x] Add English and Polish translations for implemented household and account-recovery flows.
 - [ ] Handle expired or revoked invites, duplicate joins, offline invite acceptance, lost membership, invalid migration state, rejected writes, tombstone retention, and export/retry recovery.
