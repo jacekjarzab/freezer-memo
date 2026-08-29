@@ -19,6 +19,17 @@ npm run build
 npm run lint
 ```
 
+## Optional shared household mode
+
+Shared mode uses the browser Supabase client with the public anon key only. Configure these Vite variables before building:
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-public-anon-key
+```
+
+Never put a Supabase service-role key in `.env`, browser code, or deployed static assets. Apply `supabase/migrations/20260819040000_shared_household_sync.sql` to the project before enabling shared mode. Local-only inventory writes remain local until an explicit migration and atomic outbox workflow are implemented.
+
 ## Next Build Steps
 
 - split the guided add flow into step screens/cards optimized for one-handed mobile use

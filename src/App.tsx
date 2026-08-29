@@ -44,6 +44,10 @@ import {
   presetToDraft,
   sortPresets,
 } from './lib/presets';
+import { getSyncMetadata } from './lib/sync/outbox';
+import { createLocalItem, updateLocalItem } from './lib/sync/repository';
+import { createBrowserSupabaseClient } from './lib/supabase/client';
+import { getSyncIndicatorTone, useSharedSync } from './lib/sync/service';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -127,6 +131,8 @@ function App() {
     (() => Promise<void>) | null
   >(null);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [supabaseClient] = useState(createBrowserSupabaseClient);
+  const { service: sharedSync, status: syncStatus } = useSharedSync(supabaseClient);
   const deferredSearch = useDeferredValue(search);
   const items = useLiveQuery(
     async () => db.freezerItems.orderBy('createdAt').reverse().toArray(),
@@ -134,6 +140,7 @@ function App() {
     [],
   );
   const presets = useLiveQuery(async () => db.presets.toArray(), [], []);
+  const syncMetadata = useLiveQuery(getSyncMetadata, []);
   const sortedPresets = useMemo(() => sortPresets(presets ?? []), [presets]);
   const recentItems = useMemo(() => {
     const seen = new Set<string>();
@@ -338,7 +345,7 @@ function App() {
       notes: draft.notes,
     };
     try {
-      await db.freezerItems.add({
+      await createLocalItem({
         id: crypto.randomUUID(),
         status: 'in_freezer',
         categoryKey: normalized.categoryKey,
@@ -364,7 +371,7 @@ function App() {
   async function handleTakeOut(item: FreezerItemRecord) {
     const takingOut = item.status === 'in_freezer';
     try {
-      const updated = await db.freezerItems.update(item.id, {
+      const updated = await updateLocalItem(item.id, {
         status: takingOut ? 'taken_out' : 'in_freezer',
         takenOutAt: takingOut ? new Date().toISOString() : null,
         updatedAt: new Date().toISOString(),
@@ -385,7 +392,7 @@ function App() {
   async function handleUndoTakeOut() {
     if (!pendingUndoItemId) return;
     try {
-      const updated = await db.freezerItems.update(pendingUndoItemId, {
+      const updated = await updateLocalItem(pendingUndoItemId, {
         status: 'in_freezer',
         takenOutAt: null,
         updatedAt: new Date().toISOString(),
@@ -499,7 +506,7 @@ function App() {
       return;
     }
     try {
-      const updated = await db.freezerItems.update(editingItem.id, {
+      const updated = await updateLocalItem(editingItem.id, {
         categoryKey: editDraft.categoryKey,
         cutKey: editDraft.cutKey,
         freezerKey: editDraft.freezerKey,
@@ -657,6 +664,11 @@ function App() {
               <h1 className="app-name">{t('app.name')}</h1>
               <span className="app-version">{appVersion}</span>
             </div>
+            {syncMetadata?.migrationState === 'complete' && syncMetadata.householdId ? (
+              <p className={`sync-indicator sync-indicator--${getSyncIndicatorTone(syncStatus)}`} role="status">
+                {t(`account.syncStatus.${syncStatus === 'retrying' || syncStatus === 'error' ? 'error' : syncStatus}`)}
+              </p>
+            ) : null}
           </div>
         </div>
         <button
@@ -672,6 +684,16 @@ function App() {
       {operationNotice ? (
         <p className="backup-notice error" role="alert">
           {operationNotice}
+        </p>
+      ) : null}
+      {syncMetadata?.migrationState === 'pending' ? (
+        <p className="backup-notice success" role="status">
+          {t('account.migrationReady')}
+        </p>
+      ) : null}
+      {syncMetadata?.migrationState === 'failed' ? (
+        <p className="backup-notice error" role="alert">
+          {t('account.syncFailed')}
         </p>
       ) : null}
       {presetNotice ? (
@@ -802,6 +824,8 @@ function App() {
           importFile={(event) => void handleImportFile(event)}
           onBack={() => setActiveView('inventory')}
           updateLanguage={updateLanguage}
+          syncStatus={syncStatus}
+          syncNow={(allowMigration) => sharedSync?.syncNow(allowMigration) ?? Promise.resolve({ status: 'offline' as const })}
           t={t}
         />
       )}

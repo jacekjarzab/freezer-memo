@@ -1,5 +1,7 @@
 import type { ChangeEvent, RefObject } from 'react';
 import type { TFunction } from 'i18next';
+import { HouseholdSyncPanel } from './HouseholdSyncPanel';
+import type { SyncStatus } from '../lib/sync/ports';
 
 interface SettingsViewProps {
   inputRef: RefObject<HTMLInputElement | null>;
@@ -11,6 +13,8 @@ interface SettingsViewProps {
   importFile: (event: ChangeEvent<HTMLInputElement>) => void;
   onBack: () => void;
   updateLanguage: (language: 'en' | 'pl') => void;
+  syncStatus: SyncStatus;
+  syncNow: (allowMigration?: boolean) => Promise<{ status: SyncStatus; reason?: string }>;
   t: TFunction;
 }
 
@@ -24,6 +28,8 @@ export function SettingsView({
   importFile,
   onBack,
   updateLanguage,
+  syncStatus,
+  syncNow,
   t,
 }: SettingsViewProps) {
   return (
@@ -105,6 +111,7 @@ export function SettingsView({
           </p>
         ) : null}
       </section>
+      <HouseholdSyncPanel t={t} syncStatus={syncStatus} syncNow={syncNow} />
     </section>
   );
 }
