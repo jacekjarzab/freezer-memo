@@ -22,6 +22,7 @@ interface InventoryPanelProps {
   loading: boolean;
   storageError: boolean;
   retryStorage: () => void;
+  addItem: () => void;
 }
 
 export function InventoryPanel({
@@ -41,6 +42,7 @@ export function InventoryPanel({
   loading,
   storageError,
   retryStorage,
+  addItem,
 }: InventoryPanelProps) {
   const searchPlaceholder =
     inventoryMode === 'current'
@@ -136,8 +138,8 @@ export function InventoryPanel({
               setSortOption(event.target.value as SortOption)
             }
           >
-            <option value="newest">{t('filters.sortOptions.newest')}</option>
-            <option value="oldest">{t('filters.sortOptions.oldest')}</option>
+            <option value="newest">{t(inventoryMode === 'history' ? 'filters.sortOptions.recentRemoval' : 'filters.sortOptions.newest')}</option>
+            <option value="oldest">{t(inventoryMode === 'history' ? 'filters.sortOptions.oldestRemoval' : 'filters.sortOptions.oldest')}</option>
             <option value="category">
               {t('filters.sortOptions.category')}
             </option>
@@ -158,15 +160,26 @@ export function InventoryPanel({
         ) : filteredItems.length === 0 ? (
           <article className="empty-state">
             <strong>
-              {inventoryMode === 'current'
-                ? t('inventory.emptyTitle')
-                : t('history.emptyTitle')}
+              {inventoryMode === 'history'
+                ? t('history.emptyTitle')
+                : search.trim()
+                  ? t('inventory.noSearchResultsTitle')
+                  : activeCategoryFilter !== 'all'
+                    ? t('inventory.noFilterResultsTitle')
+                    : t('inventory.firstUseTitle')}
             </strong>
             <p>
-              {inventoryMode === 'current'
-                ? t('inventory.emptyCopy')
-                : t('history.emptyCopy')}
+              {inventoryMode === 'history'
+                ? t('history.emptyCopy')
+                : search.trim()
+                  ? t('inventory.noSearchResultsCopy', { query: search.trim() })
+                  : activeCategoryFilter !== 'all'
+                    ? t('inventory.noFilterResultsCopy')
+                    : t('inventory.firstUseCopy')}
             </p>
+            {inventoryMode === 'current' && !search.trim() && activeCategoryFilter === 'all' ? <button className="primary-button" type="button" onClick={addItem}>{t('actions.addItem')}</button> : null}
+            {inventoryMode === 'current' && search.trim() ? <button className="secondary-button" type="button" onClick={() => setSearch('')}>{t('actions.clearSearch')}</button> : null}
+            {inventoryMode === 'current' && !search.trim() && activeCategoryFilter !== 'all' ? <button className="secondary-button" type="button" onClick={() => setActiveCategoryFilter('all')}>{t('actions.resetFilters')}</button> : null}
           </article>
         ) : (
           filteredItems.map((item) => (
@@ -191,7 +204,7 @@ export function InventoryPanel({
               <p className="meta-line">
                 <span>{formatFrozenAge(item.frozenAt, language)}</span>
                 <span aria-hidden="true"> · </span>
-                <span>{formatFrozenDate(item.frozenAt, language)}</span>
+                <span>{inventoryMode === 'history' && item.takenOutAt ? `${t('history.removedOn')} ${formatFrozenDate(item.takenOutAt, language)}` : formatFrozenDate(item.frozenAt, language)}</span>
               </p>
               {item.notes ? <p className="note-line">{item.notes}</p> : null}
               <div className="inventory-card-footer">

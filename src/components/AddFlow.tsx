@@ -278,6 +278,9 @@ export function AddFlow({
                       <input
                         id="quantityValue"
                         inputMode="decimal"
+                        min="0.01"
+                        step="any"
+                        aria-invalid={draft.quantityValue.trim() !== '' && (!Number.isFinite(parsedQuantityValue) || parsedQuantityValue <= 0)}
                         placeholder={t('fields.quantityPlaceholder')}
                         value={draft.quantityValue}
                         onChange={(event) =>
@@ -312,6 +315,7 @@ export function AddFlow({
                         )}
                       </div>
                     </div>
+                    {draft.quantityValue.trim() !== '' && (!Number.isFinite(parsedQuantityValue) || parsedQuantityValue <= 0) ? <p className="field-error" role="alert">{t('validation.positiveQuantity')}</p> : null}
                   </div>
                 </div>
                 <article className="step-preview">

@@ -43,7 +43,7 @@ export function filterAndSortInventory(
     })
     .sort((left, right) => {
       if (options.sort === 'oldest') {
-        return left.createdAt.localeCompare(right.createdAt)
+        return (left.takenOutAt ?? left.createdAt).localeCompare(right.takenOutAt ?? right.createdAt)
       }
 
       if (options.sort === 'category') {
@@ -64,6 +64,6 @@ export function filterAndSortInventory(
           )
       }
 
-      return right.createdAt.localeCompare(left.createdAt)
+      return (right.takenOutAt ?? right.createdAt).localeCompare(left.takenOutAt ?? left.createdAt)
     })
 }

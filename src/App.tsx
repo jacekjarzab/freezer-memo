@@ -133,6 +133,9 @@ function App() {
   const [isStandalone, setIsStandalone] = useState(false);
   const [storageRetry, setStorageRetry] = useState(0);
   const focusRestoreRef = useRef<HTMLElement | null>(null);
+  const addInitialDraftRef = useRef<AddDraft>(createInitialDraft());
+  const editInitialDraftRef = useRef<AddDraft>(createInitialDraft());
+  const closeEditPanelRef = useRef<() => void>(() => undefined);
   const [supabaseClient] = useState(createBrowserSupabaseClient);
   const { service: sharedSync, status: syncStatus } = useSharedSync(supabaseClient);
   const deferredSearch = useDeferredValue(search);
@@ -191,7 +194,7 @@ function App() {
           items?.filter(
             (item) => item.status === 'in_freezer' && item.categoryKey === key,
           ).length ?? 0,
-      })).filter((entry) => entry.count > 0),
+      })).filter((entry) => entry.count > 0).sort((left, right) => right.count - left.count),
     [items],
   );
   const currentCuts = draft.categoryKey ? CUT_OPTIONS_BY_CATEGORY[draft.categoryKey] : [];
@@ -270,7 +273,7 @@ function App() {
   useEffect(() => {
     if (!editingItemId) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeEditPanel();
+      if (event.key === 'Escape') closeEditPanelRef.current();
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -289,11 +292,14 @@ function App() {
     prefill?: Partial<AddDraft>,
     step: AddScreen = 'category',
   ) => {
-    setDraft({ ...createInitialDraft(), ...prefill });
+    const nextDraft = { ...createInitialDraft(), ...prefill };
+    addInitialDraftRef.current = nextDraft;
+    setDraft(nextDraft);
     setAddScreen(step);
     setShowAddPanel(true);
   };
   const closeAddFlow = () => {
+    if (JSON.stringify(draft) !== JSON.stringify(addInitialDraftRef.current) && !window.confirm(t('add.discardConfirm'))) return;
     setShowAddPanel(false);
     setAddScreen('category');
   };
@@ -504,15 +510,19 @@ function App() {
       : openAddFlow();
   const openEditPanel = (item: FreezerItemRecord) => {
     focusRestoreRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const nextDraft = createDraftFromItem(item);
+    editInitialDraftRef.current = nextDraft;
     setEditingItemId(item.id);
-    setEditDraft(createDraftFromItem(item));
+    setEditDraft(nextDraft);
     setEditNotice(null);
   };
   const closeEditPanel = () => {
+    if (JSON.stringify(editDraft) !== JSON.stringify(editInitialDraftRef.current) && !window.confirm(t('edit.discardConfirm'))) return;
     setEditingItemId(null);
     setEditNotice(null);
     requestAnimationFrame(() => focusRestoreRef.current?.focus());
   };
+  closeEditPanelRef.current = closeEditPanel;
   async function handleSaveEdit() {
     if (
       !editingItem ||
@@ -750,12 +760,18 @@ function App() {
           </article>
         ) : (
           countsByCategory.slice(0, 3).map((entry) => (
-            <article className="summary-card" key={entry.key}>
+            <button className="summary-card summary-card-button" key={entry.key} type="button" onClick={() => setActiveCategoryFilter(entry.key)}>
               <span>{t(`catalog.categories.${entry.key}`)}</span>
               <strong>{entry.count}</strong>
-            </article>
+            </button>
           ))
         )}
+        {countsByCategory.length > 3 ? (
+          <button className="summary-card summary-card-button summary-card-more" type="button" onClick={() => setActiveCategoryFilter('all')}>
+            <span>{t('summary.moreCategories')}</span>
+            <strong>+{countsByCategory.length - 3}</strong>
+          </button>
+        ) : null}
       </section>
       {showAddPanel ? (
         <AddFlow
@@ -815,6 +831,7 @@ function App() {
         loading={storageLoading}
         storageError={storageError}
         retryStorage={() => setStorageRetry((value) => value + 1)}
+        addItem={() => openAddFlow()}
       />
       {editingItem ? (
         <EditItemPanel

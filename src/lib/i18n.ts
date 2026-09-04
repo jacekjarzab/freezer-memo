@@ -28,6 +28,8 @@ const resources = {
         takeOut: 'Take out',
         restore: 'Restore',
         undo: 'Undo',
+        clearSearch: 'Clear search',
+        resetFilters: 'Reset filters',
         pin: 'Pin',
         unpin: 'Unpin',
         use: 'Use',
@@ -47,6 +49,7 @@ const resources = {
           'Fix labels, quantity, or notes without removing the item first.',
         previewLabel: 'Updated preview',
         saved: 'Changes saved locally.',
+        discardConfirm: 'Discard your unsaved changes?',
         errors: {
           invalidQuantity: 'Enter a valid quantity before saving changes.',
         },
@@ -62,6 +65,10 @@ const resources = {
       },
       account: {
         title: 'Shared household (optional)',
+        sharingUnavailableTitle: 'Household sharing is unavailable',
+        sharingUnavailableCopy: 'Household sharing isn’t enabled in this build. Your local freezer remains available.',
+        invitationExpires: 'Invitation expires {{date}}',
+        memberLabel: 'Member ···{{id}}',
         subtitle: 'Sign in only when you want to share inventory. Local-only mode stays unchanged until you migrate it.',
         email: 'Email', requestMagicLink: 'Send magic link', magicLinkSent: 'Check your email for the sign-in link.',
         signedInAs: 'Signed in as {{email}}', signOut: 'Sign out', householdName: 'Household name', createHousehold: 'Create household', householdCreated: 'Household created. Local data is still local until migration.', householdReady: 'Household connected. Sync migration is ready to be started.', migrationReady: 'Shared household is connected. Local inventory remains unchanged until you explicitly migrate it.', migrateInventory: 'Migrate local inventory', migrationComplete: 'Inventory migrated and shared sync is active.', syncFailed: 'Shared sync needs attention. Local inventory is still available on this device.', syncStatus: { offline: 'Shared sync is offline.', syncing: 'Shared sync in progress.', up_to_date: 'Shared sync is up to date.', retrying: 'Shared sync will retry when the connection is available.', error: 'Shared sync needs attention; local data is preserved.' },
@@ -113,6 +120,7 @@ const resources = {
         items: 'Items in freezer',
         emptyLabel: 'Ready to start',
         emptyValue: 'No items yet',
+        moreCategories: 'More categories'
       },
       add: {
         stepLabel: 'Guided add flow',
@@ -129,6 +137,7 @@ const resources = {
         successBadge: 'Saved offline',
         successTitle: 'Item added to your freezer.',
         successCopy: 'You can close this flow or repeat the same item fast.',
+        discardConfirm: 'Discard your unsaved changes?',
         categoryHints: {
           chicken: 'Breasts, thighs, wings, whole birds',
           beef: 'Steaks, ribs, roasts, burger packs',
@@ -191,8 +200,14 @@ const resources = {
         eyebrow: 'Search in',
         title: 'Freezer',
         searchPlaceholder: 'Search by type, cut, note, or quantity',
-        emptyTitle: 'Nothing matched the current search.',
-        emptyCopy: 'Add your first pack or loosen the filters.',
+        emptyTitle: 'No items found.',
+        emptyCopy: 'Add an item or adjust the view.',
+        firstUseTitle: 'Your freezer is ready for its first item.',
+        firstUseCopy: 'Track what you freeze so you can find it before shopping.',
+        noSearchResultsTitle: 'No items match “{{query}}”.',
+        noSearchResultsCopy: 'Try another search or clear it to see all items.',
+        noFilterResultsTitle: 'No items in this category.',
+        noFilterResultsCopy: 'Reset the filter to see all freezer items.',
         takeOutSaved: 'Item taken out.',
       },
       history: {
@@ -205,6 +220,7 @@ const resources = {
           'Search taken-out items by type, cut, note, or quantity',
         emptyTitle: 'No taken-out items matched this view.',
         emptyCopy: 'Use the freezer a bit or loosen the filters.',
+        removedOn: 'Removed'
       },
       recent: {
         title: 'Quick add again',
@@ -218,6 +234,9 @@ const resources = {
         removed: 'Preset unpinned.',
         used: 'Preset ready to add.',
       },
+      validation: {
+        positiveQuantity: 'Enter an amount greater than 0.',
+      },
       filters: {
         allCategories: 'All categories',
         category: 'Category filter',
@@ -226,6 +245,8 @@ const resources = {
           newest: 'Newest first',
           oldest: 'Oldest first',
           category: 'Category',
+          recentRemoval: 'Recently removed',
+          oldestRemoval: 'Oldest removal',
         },
       },
       statuses: {
@@ -355,6 +376,8 @@ const resources = {
         takeOut: 'Wyjmij',
         restore: 'Przywróć',
         undo: 'Cofnij',
+        clearSearch: 'Wyczyść wyszukiwanie',
+        resetFilters: 'Resetuj filtry',
         pin: 'Przypnij',
         unpin: 'Odepnij',
         use: 'Użyj',
@@ -372,6 +395,7 @@ const resources = {
           'Popraw etykiety, ilość albo notatkę bez wyjmowania produktu.',
         previewLabel: 'Podgląd po zmianach',
         saved: 'Zmiany zapisane lokalnie.',
+        discardConfirm: 'Odrzucić niezapisane zmiany?',
         errors: {
           invalidQuantity: 'Podaj poprawną ilość przed zapisaniem zmian.',
         },
@@ -387,6 +411,10 @@ const resources = {
       },
       account: {
         title: 'Wspólne gospodarstwo (opcjonalnie)',
+        sharingUnavailableTitle: 'Współdzielenie gospodarstwa jest niedostępne',
+        sharingUnavailableCopy: 'Współdzielenie nie jest włączone w tej wersji. Lokalna zamrażarka nadal działa.',
+        invitationExpires: 'Zaproszenie wygasa {{date}}',
+        memberLabel: 'Członek ···{{id}}',
         subtitle: 'Zaloguj się tylko wtedy, gdy chcesz współdzielić stan. Tryb lokalny pozostaje bez zmian do czasu migracji.',
         email: 'E-mail', requestMagicLink: 'Wyślij link logowania', magicLinkSent: 'Sprawdź skrzynkę, aby zalogować się przez link.',
         signedInAs: 'Zalogowano jako {{email}}', signOut: 'Wyloguj', householdName: 'Nazwa gospodarstwa', createHousehold: 'Utwórz gospodarstwo', householdCreated: 'Gospodarstwo utworzone. Lokalne dane nadal są lokalne do czasu migracji.', householdReady: 'Gospodarstwo połączone. Migracja synchronizacji jest gotowa do uruchomienia.', migrationReady: 'Wspólne gospodarstwo jest połączone. Lokalne dane pozostają bez zmian do czasu jawnej migracji.', migrateInventory: 'Migruj lokalne zapasy', migrationComplete: 'Zapasy zmigrowane, współdzielona synchronizacja jest aktywna.', syncFailed: 'Wspólna synchronizacja wymaga uwagi. Lokalne dane nadal są dostępne na tym urządzeniu.', syncStatus: { offline: 'Wspólna synchronizacja jest offline.', syncing: 'Wspólna synchronizacja trwa.', up_to_date: 'Wspólna synchronizacja jest aktualna.', retrying: 'Synchronizacja ponowi próbę po przywróceniu połączenia.', error: 'Synchronizacja wymaga uwagi; lokalne dane są zachowane.' },
@@ -444,6 +472,7 @@ const resources = {
         items: 'Wszystkie Produkty',
         emptyLabel: 'Gotowe na start',
         emptyValue: 'Brak produktów',
+        moreCategories: 'Więcej kategorii'
       },
       add: {
         stepLabel: 'Prowadzone dodawanie',
@@ -461,6 +490,7 @@ const resources = {
         successBadge: 'Zapisano offline',
         successTitle: 'Produkt wylądował w zamrażarce.',
         successCopy: 'Możesz zamknąć flow albo szybko dodać dokładnie to samo.',
+        discardConfirm: 'Odrzucić niezapisane zmiany?',
         categoryHints: {
           chicken: 'Piersi, uda, skrzydełka, cały drób',
           beef: 'Steki, żeberka, pieczenie, burgery',
@@ -523,8 +553,14 @@ const resources = {
         eyebrow: 'Szukaj w',
         title: 'Zamrażarka',
         searchPlaceholder: 'Szukaj po typie, części, notatce albo ilości',
-        emptyTitle: 'Nic nie pasuje do aktualnego wyszukiwania.',
-        emptyCopy: 'Dodaj pierwszy pakunek albo poluzuj filtry.',
+        emptyTitle: 'Brak produktów.',
+        emptyCopy: 'Dodaj produkt albo zmień widok.',
+        firstUseTitle: 'Twoja zamrażarka czeka na pierwszy produkt.',
+        firstUseCopy: 'Zapisuj mrożonki, żeby znaleźć je przed kolejnymi zakupami.',
+        noSearchResultsTitle: 'Brak produktów pasujących do „{{query}}”.',
+        noSearchResultsCopy: 'Spróbuj innego hasła albo wyczyść wyszukiwanie.',
+        noFilterResultsTitle: 'Brak produktów w tej kategorii.',
+        noFilterResultsCopy: 'Zresetuj filtr, żeby zobaczyć całą zamrażarkę.',
         takeOutSaved: 'Produkt wyjęty.',
       },
       history: {
@@ -537,6 +573,7 @@ const resources = {
           'Szukaj wyjętych rzeczy po typie, części, notatce albo ilości',
         emptyTitle: 'Żadne wyjęte produkty nie pasują do tego widoku.',
         emptyCopy: 'Najpierw coś wyjmij albo poluzuj filtry.',
+        removedOn: 'Wyjęto'
       },
       recent: {
         title: 'Dodaj ponownie',
@@ -550,6 +587,9 @@ const resources = {
         removed: 'Zestaw odpięty.',
         used: 'Zestaw gotowy do dodania.',
       },
+      validation: {
+        positiveQuantity: 'Podaj ilość większą od 0.',
+      },
       filters: {
         allCategories: 'Wszystkie kategorie',
         category: 'Filtr kategorii',
@@ -558,6 +598,8 @@ const resources = {
           newest: 'Najnowsze najpierw',
           oldest: 'Najstarsze najpierw',
           category: 'Kategoria',
+          recentRemoval: 'Najnowsze wyjęcia',
+          oldestRemoval: 'Najstarsze wyjęcia',
         },
       },
       statuses: {
