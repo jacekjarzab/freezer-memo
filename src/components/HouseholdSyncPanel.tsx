@@ -57,6 +57,9 @@ export function HouseholdSyncPanel({ t, syncStatus, syncNow }: { t: TFunction; s
       } else if (result.status === 'error') {
         setPendingAction(null);
         setNotice({ key: result.reason === 'forbidden' ? 'account.errors.forbidden' : 'account.syncFailed', error: true });
+      } else {
+        setPendingAction(null);
+        setNotice({ key: 'account.syncFailed', error: true });
       }
     } catch (error) { showError(error); }
   };
