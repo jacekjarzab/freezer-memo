@@ -1,7 +1,7 @@
 import type { TFunction } from 'i18next';
 import { CATEGORY_KEYS } from '../data/catalog';
 import type { FreezerItemRecord } from '../lib/db';
-import { formatFrozenDate, formatQuantity } from '../lib/format';
+import { formatFrozenAge, formatFrozenDate, formatQuantity } from '../lib/format';
 import type { InventoryMode, SortOption } from '../lib/inventory';
 import { CategoryIcon } from './CategoryIcon';
 
@@ -19,6 +19,9 @@ interface InventoryPanelProps {
   setSortOption: (value: SortOption) => void;
   language: string;
   t: TFunction;
+  loading: boolean;
+  storageError: boolean;
+  retryStorage: () => void;
 }
 
 export function InventoryPanel({
@@ -35,6 +38,9 @@ export function InventoryPanel({
   setSortOption,
   language,
   t,
+  loading,
+  storageError,
+  retryStorage,
 }: InventoryPanelProps) {
   const searchPlaceholder =
     inventoryMode === 'current'
@@ -139,7 +145,17 @@ export function InventoryPanel({
         </div>
       </div>
       <div className="inventory-list">
-        {filteredItems.length === 0 ? (
+        {loading ? (
+          <div className="inventory-skeleton" aria-busy="true" aria-label={t('storage.loading')}>
+            <span /><span /><span />
+          </div>
+        ) : storageError ? (
+          <article className="empty-state" role="alert">
+            <strong>{t('storage.errors.loadTitle')}</strong>
+            <p>{t('storage.errors.load')}</p>
+            <button className="primary-button" type="button" onClick={retryStorage}>{t('actions.retry')}</button>
+          </article>
+        ) : filteredItems.length === 0 ? (
           <article className="empty-state">
             <strong>
               {inventoryMode === 'current'
@@ -173,7 +189,9 @@ export function InventoryPanel({
                 </div>
               </div>
               <p className="meta-line">
-                {formatFrozenDate(item.frozenAt, language)}
+                <span>{formatFrozenAge(item.frozenAt, language)}</span>
+                <span aria-hidden="true"> · </span>
+                <span>{formatFrozenDate(item.frozenAt, language)}</span>
               </p>
               {item.notes ? <p className="note-line">{item.notes}</p> : null}
               <div className="inventory-card-footer">

@@ -66,11 +66,11 @@ export function AddFlow({
   updateDraft,
 }: AddFlowProps) {
   return (
-    <section className="panel add-flow-panel">
+    <section className="panel add-flow-panel" role="dialog" aria-modal="true" aria-labelledby="add-flow-title">
       <div className="panel-heading add-flow-header">
         <div>
           <p className="eyebrow">{t('add.stepLabel')}</p>
-          <h2>{t('add.title')}</h2>
+          <h2 id="add-flow-title">{t('add.title')}</h2>
         </div>
         <button
           className="ghost-button small-button add-flow-close"
