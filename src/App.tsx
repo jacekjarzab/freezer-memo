@@ -67,8 +67,8 @@ const appVersion = 'v1.3';
 type AppView = 'inventory' | 'settings';
 function createInitialDraft(): AddDraft {
   return {
-    categoryKey: 'chicken',
-    cutKey: 'breast',
+    categoryKey: null,
+    cutKey: '',
     freezerKey: 'home',
     quantityType: 'weight',
     quantityValue: '500',
@@ -131,15 +131,23 @@ function App() {
     (() => Promise<void>) | null
   >(null);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [storageRetry, setStorageRetry] = useState(0);
+  const focusRestoreRef = useRef<HTMLElement | null>(null);
   const [supabaseClient] = useState(createBrowserSupabaseClient);
   const { service: sharedSync, status: syncStatus } = useSharedSync(supabaseClient);
   const deferredSearch = useDeferredValue(search);
-  const items = useLiveQuery(
-    async () => db.freezerItems.orderBy('createdAt').reverse().toArray(),
-    [],
-    [],
-  );
-  const presets = useLiveQuery(async () => db.presets.toArray(), [], []);
+  const itemsQuery = useLiveQuery(async () => {
+    try { return { items: await db.freezerItems.orderBy('createdAt').reverse().toArray(), error: false }; }
+    catch { return { items: [], error: true }; }
+  }, [storageRetry], { items: null, error: false });
+  const presetsQuery = useLiveQuery(async () => {
+    try { return { presets: await db.presets.toArray(), error: false }; }
+    catch { return { presets: [], error: true }; }
+  }, [storageRetry], { presets: null, error: false });
+  const items = itemsQuery.items;
+  const presets = presetsQuery.presets;
+  const storageLoading = items === null || presets === null;
+  const storageError = itemsQuery.error || presetsQuery.error;
   const syncMetadata = useLiveQuery(getSyncMetadata, []);
   const sortedPresets = useMemo(() => sortPresets(presets ?? []), [presets]);
   const recentItems = useMemo(() => {
@@ -186,8 +194,8 @@ function App() {
       })).filter((entry) => entry.count > 0),
     [items],
   );
-  const currentCuts = CUT_OPTIONS_BY_CATEGORY[draft.categoryKey];
-  const currentEditCuts = CUT_OPTIONS_BY_CATEGORY[editDraft.categoryKey];
+  const currentCuts = draft.categoryKey ? CUT_OPTIONS_BY_CATEGORY[draft.categoryKey] : [];
+  const currentEditCuts = editDraft.categoryKey ? CUT_OPTIONS_BY_CATEGORY[editDraft.categoryKey] : [];
   const currentStepIndex =
     addScreen === 'done' ? addSteps.length : addSteps.indexOf(addScreen);
   const progressValue = ((currentStepIndex + 1) / (addSteps.length + 1)) * 100;
@@ -259,6 +267,14 @@ function App() {
       media.removeEventListener('change', sync);
     };
   }, [showAddPanel]);
+  useEffect(() => {
+    if (!editingItemId) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeEditPanel();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [editingItemId]);
   useEffect(
     () => () => {
       if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
@@ -335,7 +351,7 @@ function App() {
     setAddScreen(addSteps[previous]);
   };
   async function handleSaveItem() {
-    if (!Number.isFinite(parsedQuantityValue) || parsedQuantityValue <= 0)
+    if (!draft.categoryKey || !draft.cutKey || !Number.isFinite(parsedQuantityValue) || parsedQuantityValue <= 0)
       return;
     const now = new Date().toISOString();
     const normalized = {
@@ -348,7 +364,7 @@ function App() {
       await createLocalItem({
         id: crypto.randomUUID(),
         status: 'in_freezer',
-        categoryKey: normalized.categoryKey,
+        categoryKey: draft.categoryKey,
         cutKey: normalized.cutKey,
         freezerKey: normalized.freezerKey,
         quantityType: normalized.quantityType,
@@ -383,7 +399,7 @@ function App() {
       if (takingOut)
         undoTimerRef.current = setTimeout(
           () => setPendingUndoItemId(null),
-          5000,
+          9000,
         );
     } catch {
       setOperationNotice(t('storage.errors.save'));
@@ -487,6 +503,7 @@ function App() {
       ? openAddFlow(lastSavedDraft, 'quantityValue')
       : openAddFlow();
   const openEditPanel = (item: FreezerItemRecord) => {
+    focusRestoreRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setEditingItemId(item.id);
     setEditDraft(createDraftFromItem(item));
     setEditNotice(null);
@@ -494,6 +511,7 @@ function App() {
   const closeEditPanel = () => {
     setEditingItemId(null);
     setEditNotice(null);
+    requestAnimationFrame(() => focusRestoreRef.current?.focus());
   };
   async function handleSaveEdit() {
     if (
@@ -507,7 +525,7 @@ function App() {
     }
     try {
       const updated = await updateLocalItem(editingItem.id, {
-        categoryKey: editDraft.categoryKey,
+        categoryKey: editDraft.categoryKey ?? editingItem.categoryKey,
         cutKey: editDraft.cutKey,
         freezerKey: editDraft.freezerKey,
         quantityType: editDraft.quantityType,
@@ -583,7 +601,7 @@ function App() {
 
   return (
     <main
-      className={showAddPanel ? 'app-shell app-shell--add-open' : 'app-shell'}
+      className={showAddPanel ? 'app-shell app-shell--add-open' : editingItem ? 'app-shell app-shell--edit-open' : 'app-shell'}
     >
       {activeView === 'inventory' ? (
         <>
@@ -794,6 +812,9 @@ function App() {
         setSortOption={setSortOption}
         language={i18n.language}
         t={t}
+        loading={storageLoading}
+        storageError={storageError}
+        retryStorage={() => setStorageRetry((value) => value + 1)}
       />
       {editingItem ? (
         <EditItemPanel

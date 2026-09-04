@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type { TFunction } from 'i18next';
 import { CATEGORY_KEYS, type CategoryKey } from '../data/catalog';
 import type { FreezerItemRecord, FreezerKey, QuantityType } from '../lib/db';
@@ -37,12 +38,14 @@ export function EditItemPanel({
   update,
   t,
 }: EditItemPanelProps) {
+  const panelRef = useRef<HTMLElement>(null);
+  useEffect(() => panelRef.current?.focus(), []);
   return (
-    <section className="panel edit-panel">
+    <section className="panel edit-panel" ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="edit-panel-title" tabIndex={-1}>
       <div className="panel-heading edit-header">
         <div>
           <p className="eyebrow">{t('edit.eyebrow')}</p>
-          <h2>{t('edit.title')}</h2>
+          <h2 id="edit-panel-title">{t('edit.title')}</h2>
         </div>
         <p className="panel-copy">{t('edit.subtitle')}</p>
       </div>
@@ -51,7 +54,7 @@ export function EditItemPanel({
           <label htmlFor="edit-category">{t('fields.category')}</label>
           <select
             id="edit-category"
-            value={draft.categoryKey}
+            value={draft.categoryKey ?? item.categoryKey}
             onChange={(event) =>
               selectCategory(event.target.value as CategoryKey)
             }
@@ -119,11 +122,7 @@ export function EditItemPanel({
               ))}
             </select>
           ) : (
-            <input
-              id="edit-quantity-unit"
-              value={draft.quantityUnit}
-              onChange={(event) => update({ quantityUnit: event.target.value })}
-            />
+            <span className="field-value-readonly" id="edit-quantity-unit">{t(`quantities.types.${draft.quantityType}`)}</span>
           )}
         </div>
         <div className="field-group">
@@ -155,14 +154,14 @@ export function EditItemPanel({
       <article className="review-card">
         <span>{t('edit.previewLabel')} </span>
         <strong>
-          {t(`catalog.categories.${draft.categoryKey}`)} ·{' '}
-          {t(`catalog.cuts.${draft.categoryKey}.${draft.cutKey}`)}
+          {t(`catalog.categories.${draft.categoryKey ?? item.categoryKey}`)} ·{' '}
+          {t(`catalog.cuts.${draft.categoryKey ?? item.categoryKey}.${draft.cutKey}`)}
         </strong>
         <p>
           {formatQuantity(
             {
               ...item,
-              categoryKey: draft.categoryKey,
+              categoryKey: draft.categoryKey ?? item.categoryKey,
               cutKey: draft.cutKey,
               freezerKey: draft.freezerKey,
               quantityType: draft.quantityType,

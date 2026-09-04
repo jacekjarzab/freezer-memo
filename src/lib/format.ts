@@ -25,3 +25,9 @@ export function formatFrozenDate(date: string, language: string) {
 
   return formatter.format(new Date(date))
 }
+
+export function formatFrozenAge(date: string, language: string) {
+  const days = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 86_400_000))
+  if (language === 'pl') return `Zamrożone ${days} dni temu`
+  return `Frozen ${days} ${days === 1 ? 'day' : 'days'} ago`
+}

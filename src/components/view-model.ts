@@ -10,7 +10,7 @@ export type AddStep =
 export type AddScreen = AddStep | 'done';
 
 export interface AddDraft {
-  categoryKey: CategoryKey;
+  categoryKey: CategoryKey | null;
   cutKey: string;
   freezerKey: FreezerKey;
   quantityType: QuantityType;
