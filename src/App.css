@@ -643,6 +643,20 @@ select:focus-visible {
   flex-wrap: wrap;
 }
 
+.household-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.household-form label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.household-form input {
+  width: 100%;
+}
+
 .settings-trigger:focus-visible,
 .settings-back:focus-visible,
 .settings-language .language-chip:focus-visible,
