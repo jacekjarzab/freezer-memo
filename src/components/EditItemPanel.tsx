@@ -103,9 +103,13 @@ export function EditItemPanel({
           <input
             id="edit-quantity-value"
             inputMode="decimal"
+            min="0.01"
+            step="any"
+            aria-invalid={draft.quantityValue.trim() !== '' && (!Number.isFinite(parsedQuantityValue) || parsedQuantityValue <= 0)}
             value={draft.quantityValue}
             onChange={(event) => update({ quantityValue: event.target.value })}
           />
+          {draft.quantityValue.trim() !== '' && (!Number.isFinite(parsedQuantityValue) || parsedQuantityValue <= 0) ? <p className="field-error" role="alert">{t('validation.positiveQuantity')}</p> : null}
         </div>
         <div className="field-group">
           <label htmlFor="edit-quantity-unit">{t('fields.quantityUnit')}</label>
