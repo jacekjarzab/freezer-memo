@@ -82,7 +82,13 @@ export class SupabaseAuthAdapter implements AuthPort {
   async signUp(email: string, password: string, redirectUrl: string): Promise<SignUpResult> {
     const { data, error } = await this.client.auth.signUp({ email, password, options: { emailRedirectTo: redirectUrl } });
     if (error) throwAdapterError(error);
-    return { session: toAuthSession(data.session), requiresConfirmation: Boolean(data.user && !data.session) };
+    return {
+      session: toAuthSession(data.session),
+      requiresConfirmation: Boolean(data.user && !data.session),
+      // Supabase returns an obfuscated user with no identities for an existing
+      // email when email confirmation is enabled.
+      accountExists: Boolean(data.user && data.user.identities?.length === 0),
+    };
   }
   async signInWithPassword(email: string, password: string): Promise<AuthSession> {
     const { data, error } = await this.client.auth.signInWithPassword({ email, password });

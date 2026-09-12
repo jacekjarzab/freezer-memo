@@ -32,6 +32,7 @@ Replace repeated magic-link sign-in with an in-app email and password account fl
 - [x] Add email, password, and confirm-password validation.
 - [x] Add loading and disabled states for all auth actions.
 - [x] Show a confirmation-required state after signup when Supabase returns no session.
+- [x] Alert when signup returns Supabase's existing-account response and direct the user to sign in or recover the password.
 - [x] Add forgot-password and set-new-password states.
 - [x] Preserve existing household creation, invite, migration, and sign-out behavior.
 - [x] Add an explicit browser/PWA return instruction for confirmation and recovery links.
@@ -41,7 +42,7 @@ Replace repeated magic-link sign-in with an in-app email and password account fl
 - [x] Keep the production origin in Supabase Site URL and Redirect URLs.
 - [x] Keep localhost redirect URLs for development.
 - [x] Confirm Email provider and email confirmation are enabled.
-- [ ] Configure production SMTP or verify the project email service limits.
+- [x] Configure production SMTP or verify the project email service limits.
 - [ ] Verify confirmation and recovery callbacks in browser and installed PWA contexts.
 
 ### Localization and Documentation

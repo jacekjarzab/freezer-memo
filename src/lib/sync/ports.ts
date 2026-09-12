@@ -8,6 +8,7 @@ export interface AuthSession {
 export interface SignUpResult {
   session: AuthSession | null;
   requiresConfirmation: boolean;
+  accountExists: boolean;
 }
 
 export interface AuthPort {

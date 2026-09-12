@@ -657,6 +657,45 @@ select:focus-visible {
   width: 100%;
 }
 
+.password-field {
+  position: relative;
+  display: block;
+}
+
+.password-field input {
+  padding-right: 3.25rem;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  display: grid;
+  width: 2.35rem;
+  min-height: 2.35rem;
+  padding: 0.45rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent);
+  transform: translateY(-50%);
+}
+
+.password-toggle:hover {
+  background: rgba(18, 50, 68, 0.08);
+  transform: translateY(-50%);
+}
+
+.password-toggle svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 .settings-trigger:focus-visible,
 .settings-back:focus-visible,
 .settings-language .language-chip:focus-visible,

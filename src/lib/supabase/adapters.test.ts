@@ -24,7 +24,7 @@ describe('Supabase adapter error classification', () => {
 describe('Supabase auth adapter', () => {
   it('maps signup confirmation and password login results', async () => {
     const auth = {
-      signUp: vi.fn().mockResolvedValueOnce({ data: { user: { id: 'user-1' }, session: null }, error: null }),
+      signUp: vi.fn().mockResolvedValueOnce({ data: { user: { id: 'user-1', identities: [{ id: 'identity-1' }] }, session: null }, error: null }),
       signInWithPassword: vi.fn().mockResolvedValueOnce({ data: { session: { user: { id: 'user-1', email: 'user@example.com' } } }, error: null }),
     };
     const adapter = new SupabaseAuthAdapter({ auth } as never);
@@ -32,6 +32,7 @@ describe('Supabase auth adapter', () => {
     await expect(adapter.signUp('user@example.com', 'password-123', 'https://example.com')).resolves.toEqual({
       session: null,
       requiresConfirmation: true,
+      accountExists: false,
     });
     await expect(adapter.signInWithPassword('user@example.com', 'password-123')).resolves.toEqual({
       userId: 'user-1',
@@ -39,6 +40,17 @@ describe('Supabase auth adapter', () => {
     });
     expect(auth.signUp).toHaveBeenCalledWith({
       email: 'user@example.com', password: 'password-123', options: { emailRedirectTo: 'https://example.com' },
+    });
+  });
+
+  it('recognizes Supabase\'s obfuscated existing-account signup response', async () => {
+    const adapter = new SupabaseAuthAdapter({
+      auth: { signUp: vi.fn().mockResolvedValue({ data: { user: { id: 'obfuscated', identities: [] }, session: null }, error: null }) },
+    } as never);
+
+    await expect(adapter.signUp('user@example.com', 'password-123', 'https://example.com')).resolves.toMatchObject({
+      requiresConfirmation: true,
+      accountExists: true,
     });
   });
 
