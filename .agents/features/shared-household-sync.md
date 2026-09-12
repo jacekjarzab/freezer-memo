@@ -7,7 +7,7 @@ Allow a family to use the same freezer inventory from multiple mobile PWAs while
 ## Confirmed MVP Decisions
 
 - Backend: Supabase Free tier as the single hosted backend.
-- Authentication: persistent magic-link sign-in.
+- Authentication: email/password sign-in with email confirmation for new accounts; email links remain only for confirmation and password recovery.
 - Membership: one household per account; owner-created invite links with expiry and revocation; owners can remove other members but cannot remove themselves.
 - Shared data: freezer inventory only. Presets remain device-local for this release.
 - Sync model: IndexedDB remains the local cache and durable offline outbox.
@@ -24,7 +24,8 @@ Allow a family to use the same freezer inventory from multiple mobile PWAs while
 - [x] Extend the Dexie schema with household identity, sync metadata, deleted-at tombstones, server version, last-synced time, and a durable outbox.
 - [x] Preserve local-first writes and route item create, edit, take-out, restore, and delete operations through repository commands that append idempotent outbox mutations.
 - [x] Implement pull by server cursor, idempotent push with mutation UUIDs, retry handling, and foreground refresh after remote changes.
-- [x] Build create-household, sign-in, invite copy/revoke, invite acceptance, owner member removal, and account recovery UI.
+- [x] Build create-household, email/password sign-in and signup, invite copy/revoke, invite acceptance, owner member removal, and password recovery UI.
+- [x] Keep Supabase auth sessions persistent in the browser/PWA and explain that external email links may open the system browser.
 - [x] Add English and Polish translations for implemented household and account-recovery flows.
 - [ ] Handle expired or revoked invites, duplicate joins, offline invite acceptance, lost membership, invalid migration state, rejected writes, tombstone retention, and export/retry recovery.
 - [x] Test Dexie migrations and outbox ordering/idempotency/conflicts and Supabase RLS/RPC boundaries, including owner removal and post-removal access denial.

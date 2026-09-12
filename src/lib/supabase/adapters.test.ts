@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { classifySupabaseError, SupabaseHouseholdAdapter, SupabaseInventoryAdapter } from './adapters';
+import { classifySupabaseError, SupabaseAuthAdapter, SupabaseHouseholdAdapter, SupabaseInventoryAdapter } from './adapters';
 
 describe('Supabase adapter error classification', () => {
   it('classifies membership loss as forbidden', () => {
@@ -11,8 +11,59 @@ describe('Supabase adapter error classification', () => {
   it('classifies transport failures as unavailable', () => {
     expect(classifySupabaseError({ message: 'Failed to fetch' })).toBe('unavailable');
   });
+  it('classifies authentication failures distinctly', () => {
+    expect(classifySupabaseError({ message: 'Invalid login credentials' })).toBe('auth_invalid');
+    expect(classifySupabaseError({ message: 'Email not confirmed' })).toBe('auth_unconfirmed');
+    expect(classifySupabaseError({ message: 'Too many requests' })).toBe('rate_limited');
+  });
   it('does not mistake unrelated not-found errors for membership loss', () => {
     expect(classifySupabaseError({ code: 'PGRST116', message: 'No rows found' })).toBe('invalid');
+  });
+});
+
+describe('Supabase auth adapter', () => {
+  it('maps signup confirmation and password login results', async () => {
+    const auth = {
+      signUp: vi.fn().mockResolvedValueOnce({ data: { user: { id: 'user-1' }, session: null }, error: null }),
+      signInWithPassword: vi.fn().mockResolvedValueOnce({ data: { session: { user: { id: 'user-1', email: 'user@example.com' } } }, error: null }),
+    };
+    const adapter = new SupabaseAuthAdapter({ auth } as never);
+
+    await expect(adapter.signUp('user@example.com', 'password-123', 'https://example.com')).resolves.toEqual({
+      session: null,
+      requiresConfirmation: true,
+    });
+    await expect(adapter.signInWithPassword('user@example.com', 'password-123')).resolves.toEqual({
+      userId: 'user-1',
+      email: 'user@example.com',
+    });
+    expect(auth.signUp).toHaveBeenCalledWith({
+      email: 'user@example.com', password: 'password-123', options: { emailRedirectTo: 'https://example.com' },
+    });
+  });
+
+  it('supports password recovery, password updates, and auth state subscriptions', async () => {
+    const unsubscribe = vi.fn();
+    const auth = {
+      resetPasswordForEmail: vi.fn().mockResolvedValue({ error: null }),
+      updateUser: vi.fn().mockResolvedValue({ error: null }),
+      onAuthStateChange: vi.fn((listener: (event: string, session: unknown) => void) => {
+        listener('SIGNED_IN', { user: { id: 'user-1', email: 'user@example.com' } });
+        return { data: { subscription: { unsubscribe } } };
+      }),
+    };
+    const adapter = new SupabaseAuthAdapter({ auth } as never);
+    const listener = vi.fn();
+
+    await adapter.requestPasswordReset('user@example.com', 'https://example.com');
+    await adapter.updatePassword('new-password-123');
+    const cleanup = adapter.onAuthStateChange(listener);
+    cleanup();
+
+    expect(auth.resetPasswordForEmail).toHaveBeenCalledWith('user@example.com', { redirectTo: 'https://example.com' });
+    expect(auth.updateUser).toHaveBeenCalledWith({ password: 'new-password-123' });
+    expect(listener).toHaveBeenCalledWith({ userId: 'user-1', email: 'user@example.com' });
+    expect(unsubscribe).toHaveBeenCalledOnce();
   });
 });
 

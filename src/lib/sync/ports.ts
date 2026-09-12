@@ -5,9 +5,18 @@ export interface AuthSession {
   email: string | null;
 }
 
+export interface SignUpResult {
+  session: AuthSession | null;
+  requiresConfirmation: boolean;
+}
+
 export interface AuthPort {
   getSession(): Promise<AuthSession | null>;
-  requestMagicLink(email: string, redirectUrl: string): Promise<void>;
+  signUp(email: string, password: string, redirectUrl: string): Promise<SignUpResult>;
+  signInWithPassword(email: string, password: string): Promise<AuthSession>;
+  requestPasswordReset(email: string, redirectUrl: string): Promise<void>;
+  updatePassword(password: string): Promise<void>;
+  onAuthStateChange(listener: (session: AuthSession | null) => void): () => void;
   signOut(): Promise<void>;
 }
 

@@ -1,9 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { AuthPort, AuthSession, PullResult, RemoteInventoryStore } from '../sync/ports';
+import type { AuthPort, AuthSession, PullResult, RemoteInventoryStore, SignUpResult } from '../sync/ports';
 import type { FreezerItemRecord, OutboxOperationRecord } from '../db';
 
 type RemoteRow = Record<string, unknown>;
-export type HouseholdActionError = 'forbidden' | 'invite_invalid' | 'unavailable' | 'invalid';
+export type HouseholdActionError = 'forbidden' | 'invite_invalid' | 'unavailable' | 'invalid' | 'auth_invalid' | 'auth_unconfirmed' | 'rate_limited';
 
 export interface HouseholdPort {
   createHousehold(name: string): Promise<{ id: string; name: string }>;
@@ -34,6 +34,9 @@ export function classifySupabaseError(error: unknown): HouseholdActionError {
     message.includes('only household owner') ||
     message.includes('not owned by caller')
   ) return 'forbidden';
+  if (message.includes('email not confirmed')) return 'auth_unconfirmed';
+  if (message.includes('rate limit') || message.includes('too many requests')) return 'rate_limited';
+  if (message.includes('invalid login credentials') || message.includes('invalid email or password')) return 'auth_invalid';
   if (message.includes('invite') || message.includes('expired') || message.includes('revoked')) return 'invite_invalid';
   if (message.includes('network') || message.includes('fetch') || message.includes('timeout')) return 'unavailable';
   return 'invalid';
@@ -47,6 +50,10 @@ function unwrapRpcRow(data: unknown): RemoteRow {
   const row = Array.isArray(data) ? data[0] : data;
   if (!row || typeof row !== 'object') throw new SupabaseAdapterError('invalid', 'Supabase returned an invalid response');
   return row as RemoteRow;
+}
+
+function toAuthSession(session: { user: { id: string; email?: string | null } } | null): AuthSession | null {
+  return session ? { userId: session.user.id, email: session.user.email ?? null } : null;
 }
 
 function toItem(row: RemoteRow): FreezerItemRecord {
@@ -70,12 +77,31 @@ export class SupabaseAuthAdapter implements AuthPort {
   async getSession(): Promise<AuthSession | null> {
     const { data, error } = await this.client.auth.getSession();
     if (error) throwAdapterError(error);
-    const session = data.session;
-    return session ? { userId: session.user.id, email: session.user.email ?? null } : null;
+    return toAuthSession(data.session);
   }
-  async requestMagicLink(email: string, redirectUrl: string): Promise<void> {
-    const { error } = await this.client.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectUrl } });
+  async signUp(email: string, password: string, redirectUrl: string): Promise<SignUpResult> {
+    const { data, error } = await this.client.auth.signUp({ email, password, options: { emailRedirectTo: redirectUrl } });
     if (error) throwAdapterError(error);
+    return { session: toAuthSession(data.session), requiresConfirmation: Boolean(data.user && !data.session) };
+  }
+  async signInWithPassword(email: string, password: string): Promise<AuthSession> {
+    const { data, error } = await this.client.auth.signInWithPassword({ email, password });
+    if (error) throwAdapterError(error);
+    const session = toAuthSession(data.session);
+    if (!session) throw new SupabaseAdapterError('invalid', 'Supabase did not return a session');
+    return session;
+  }
+  async requestPasswordReset(email: string, redirectUrl: string): Promise<void> {
+    const { error } = await this.client.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+    if (error) throwAdapterError(error);
+  }
+  async updatePassword(password: string): Promise<void> {
+    const { error } = await this.client.auth.updateUser({ password });
+    if (error) throwAdapterError(error);
+  }
+  onAuthStateChange(listener: (session: AuthSession | null) => void): () => void {
+    const { data } = this.client.auth.onAuthStateChange((_event, session) => listener(toAuthSession(session)));
+    return () => data.subscription.unsubscribe();
   }
   async signOut(): Promise<void> {
     const { error } = await this.client.auth.signOut();
@@ -100,7 +126,8 @@ export class SupabaseInventoryAdapter implements RemoteInventoryStore {
     });
     if (error) {
       const kind = classifySupabaseError(error);
-      return { accepted: false, item: null, error: kind === 'invite_invalid' ? 'invalid' : kind };
+      const syncError: 'forbidden' | 'unavailable' | 'invalid' = kind === 'forbidden' ? 'forbidden' : kind === 'unavailable' ? 'unavailable' : 'invalid';
+      return { accepted: false, item: null, error: syncError };
     }
     return { accepted: true, item: data ? toItem(unwrapRpcRow(data)) : null };
   }
