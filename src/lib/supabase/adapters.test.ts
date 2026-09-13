@@ -112,17 +112,15 @@ describe('Supabase household adapter mapping', () => {
   });
 
   it('lists members and removes them only through the dedicated RPC', async () => {
-    const memberQuery = {
-      select: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({
-        data: [{ user_id: 'owner-1', role: 'owner' }, { user_id: 'member-1', role: 'member' }], error: null,
-      }),
-    };
-    const rpc = vi.fn().mockResolvedValue({ error: null });
-    const adapter = new SupabaseHouseholdAdapter({ from: vi.fn().mockReturnValue(memberQuery), rpc } as never);
+    const rpc = vi.fn().mockImplementation((name: string) => name === 'list_household_members' ? {
+      data: [{ user_id: 'owner-1', role: 'owner', email: 'owner@example.com' }, { user_id: 'member-1', role: 'member', email: 'member@example.com' }], error: null,
+    } : { error: null });
+    const adapter = new SupabaseHouseholdAdapter({ rpc } as never);
 
     await expect(adapter.listMembers('household-1')).resolves.toEqual([
-      { userId: 'owner-1', role: 'owner' }, { userId: 'member-1', role: 'member' },
+      { userId: 'owner-1', role: 'owner', email: 'owner@example.com' }, { userId: 'member-1', role: 'member', email: 'member@example.com' },
     ]);
+    expect(rpc).toHaveBeenCalledWith('list_household_members', { target_household_id: 'household-1' });
     await expect(adapter.removeMember('household-1', 'member-1')).resolves.toBeUndefined();
     expect(rpc).toHaveBeenCalledWith('remove_household_member', {
       target_household_id: 'household-1', target_user_id: 'member-1',

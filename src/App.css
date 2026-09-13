@@ -525,7 +525,7 @@ select:focus-visible {
 
 .primary-button {
   background: linear-gradient(135deg, #123244, #1f617b);
-  color: #f4fbfd;
+  color: var(--light);
 }
 
 .primary-button:disabled {
@@ -565,7 +565,7 @@ select:focus-visible {
 }
 
 .language-chip.active {
-  color: #f4fbfd;
+  color: var(--light);
   background: var(--accent);
 }
 
@@ -718,17 +718,55 @@ select:focus-visible {
   gap: 0.55rem;
   color: var(--text);
   font-size: 0.95rem;
+  align-items: center;
 }
 
 .member-summary span:first-child {
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.member-summary span:last-child {
+.member-identity {
+  position: relative;
+  min-width: 0;
+}
+
+.member-id-button {
+  padding: 0;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  background: transparent;
+  cursor: pointer;
+}
+
+.member-id-button:hover,
+.member-id-button:focus-visible {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.member-tooltip {
+  position: absolute;
+  z-index: 2;
+  top: calc(100%);
+  left: 0;
+  width: max-content;
+  color: var(--light);
+  max-width: min(18rem, 70vw);
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 0.45rem;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  background: var(--text);
+  box-shadow: 0 0.35rem 1rem rgba(18, 50, 68, 0.18);
+  overflow-wrap: anywhere;
+}
+
+.member-summary > span:last-child {
   color: var(--muted);
-  text-transform: capitalize;
 }
 
 .member-remove {
@@ -1349,7 +1387,7 @@ select:focus-visible {
   border-radius: 999px;
   padding: 0.95rem 1.2rem;
   background: linear-gradient(135deg, #123244, #1f617b);
-  color: #f4fbfd;
+  color: var(--light);
   font: inherit;
   font-weight: 800;
   box-shadow: 0 18px 36px rgba(18, 50, 68, 0.24);
