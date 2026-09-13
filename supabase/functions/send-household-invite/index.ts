@@ -59,17 +59,23 @@ Deno.serve(async (request) => {
   const row = invite[0] as { invite_id: string; invite_token: string; expires_at: string };
   const inviteUrl = `${appUrl}/?invite=${encodeURIComponent(row.invite_token)}`;
   const safeUrl = escapeHtml(inviteUrl);
-  const emailResponse = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: fromEmail,
-      to: [inviteeEmail],
-      subject: 'You have been invited to a Freezer Memo household',
-      text: `You have been invited to share a Freezer Memo household. Open this link to accept the invitation: ${inviteUrl}\n\nThis invitation expires on ${row.expires_at}.`,
-      html: `<p>You have been invited to share a Freezer Memo household.</p><p><a href="${safeUrl}">Accept the household invitation</a></p><p>This invitation expires on ${escapeHtml(row.expires_at)}.</p>`,
-    }),
-  });
+  let emailResponse: Response;
+  try {
+    emailResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [inviteeEmail],
+        subject: 'You have been invited to a Freezer Memo household',
+        text: `You have been invited to share a Freezer Memo household. Open this link to accept the invitation: ${inviteUrl}\n\nThis invitation expires on ${row.expires_at}.`,
+        html: `<p>You have been invited to share a Freezer Memo household.</p><p><a href="${safeUrl}">Accept the household invitation</a></p><p>This invitation expires on ${escapeHtml(row.expires_at)}.</p>`,
+      }),
+    });
+  } catch {
+    await supabase.rpc('revoke_household_invite', { target_invite_id: row.invite_id });
+    return json({ error: 'invite_email_failed' }, 502);
+  }
   if (!emailResponse.ok) {
     await supabase.rpc('revoke_household_invite', { target_invite_id: row.invite_id });
     return json({ error: 'invite_email_failed' }, 502);

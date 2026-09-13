@@ -70,7 +70,7 @@ begin
   if not found then
     raise exception 'invite is invalid, expired, or revoked';
   end if;
-  if invite.invitee_email is not null and invite.invitee_email <> authenticated_email then
+  if invite.invitee_email is not null and invite.invitee_email is distinct from authenticated_email then
     raise exception 'invite belongs to a different email';
   end if;
   if exists (select 1 from public.household_members where user_id = auth.uid()) then
