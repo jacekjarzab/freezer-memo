@@ -30,6 +30,15 @@ VITE_SUPABASE_ANON_KEY=your-public-anon-key
 
 Never put a Supabase service-role key in `.env`, browser code, or deployed static assets. Apply all migrations in `supabase/migrations/` to the project before enabling shared mode. Inventory writes remain local-first; after explicit migration, mutations are queued in the durable outbox and synchronized during foreground, focus, or reconnect refreshes. Presets remain device-local.
 
+Automatic household email invites use the `send-household-invite` Supabase Edge Function and Resend. Apply the migrations, verify the sender domain in Resend, then configure and deploy the function:
+
+```bash
+supabase secrets set RESEND_API_KEY=... INVITE_FROM_EMAIL=... APP_URL=https://your-production-domain.example
+supabase functions deploy send-household-invite
+```
+
+The function uses the caller's authenticated session for the owner check and does not require a service-role key.
+
 ## Remaining Shared Sync Work
 
 - validate two-device offline/reconnect behavior on real devices
