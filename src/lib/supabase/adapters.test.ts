@@ -128,6 +128,20 @@ describe('Supabase household adapter mapping', () => {
       target_household_id: 'household-1', target_user_id: 'member-1',
     });
   });
+
+  it('invokes the authenticated email invite function with the recipient address', async () => {
+    const functions = {
+      invoke: vi.fn().mockResolvedValue({ data: { inviteId: 'invite-1', expiresAt: '2026-09-19T00:00:00Z' }, error: null }),
+    };
+    const adapter = new SupabaseHouseholdAdapter({ functions } as never);
+
+    await expect(adapter.sendEmailInvite('household-1', 'member@example.com')).resolves.toEqual({
+      id: 'invite-1', expiresAt: '2026-09-19T00:00:00Z',
+    });
+    expect(functions.invoke).toHaveBeenCalledWith('send-household-invite', {
+      body: { householdId: 'household-1', inviteeEmail: 'member@example.com' },
+    });
+  });
 });
 
 describe('Supabase inventory adapter mapping', () => {

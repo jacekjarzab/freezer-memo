@@ -646,6 +646,13 @@ select:focus-visible {
 .household-form {
   display: grid;
   gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
 }
 
 .household-form label {
@@ -694,6 +701,41 @@ select:focus-visible {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.8;
+}
+
+.member-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.member-summary {
+  display: grid;
+  grid-template-columns: 5.75rem minmax(0, 1fr);
+  min-width: 0;
+  gap: 0.55rem;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.member-summary span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-summary span:last-child {
+  color: var(--muted);
+  text-transform: capitalize;
+}
+
+.member-remove {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
 }
 
 .settings-trigger:focus-visible,

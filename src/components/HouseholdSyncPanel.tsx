@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useEffect, useEffectEvent, useState, type ChangeEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { TFunction } from 'i18next';
 import { getSyncMetadata, saveSyncMetadata } from '../lib/sync/outbox';
@@ -23,8 +23,8 @@ export function HouseholdSyncPanel({ t, syncStatus, syncNow }: { t: TFunction; s
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>('signIn');
   const [householdName, setHouseholdName] = useState('');
-  const [inviteToken, setInviteToken] = useState('');
-  const [createdInvite, setCreatedInvite] = useState<{ id: string; token: string; expiresAt: string } | null>(null);
+  const [inviteeEmail, setInviteeEmail] = useState('');
+  const [inviteToken, setInviteToken] = useState(() => new URLSearchParams(window.location.search).get('invite') ?? '');
   const [outstandingInvites, setOutstandingInvites] = useState<Array<{ id: string; expiresAt: string }>>([]);
   const [members, setMembers] = useState<Array<{ userId: string; role: 'owner' | 'member' }>>([]);
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
@@ -89,7 +89,8 @@ export function HouseholdSyncPanel({ t, syncStatus, syncNow }: { t: TFunction; s
     if (!client || !email.trim() || !validatePassword() || pendingAction) return;
     setPendingAction('signUp');
     try {
-      const result = await new SupabaseAuthAdapter(client).signUp(email.trim(), password, window.location.origin);
+      const redirectUrl = inviteToken ? `${window.location.origin}${window.location.pathname}?invite=${encodeURIComponent(inviteToken)}` : window.location.origin;
+      const result = await new SupabaseAuthAdapter(client).signUp(email.trim(), password, redirectUrl);
       setPassword(''); setConfirmPassword(''); setPendingAction(null);
       if (result.accountExists) {
         setNotice({ key: 'account.errors.accountExists', error: true });
@@ -103,7 +104,7 @@ export function HouseholdSyncPanel({ t, syncStatus, syncNow }: { t: TFunction; s
   const requestPasswordReset = async () => {
     if (!client || !email.trim() || pendingAction) return;
     setPendingAction('reset');
-    try { await new SupabaseAuthAdapter(client).requestPasswordReset(email.trim(), window.location.origin); setPendingAction(null); setNotice({ key: 'account.passwordResetSent', error: false }); setAuthMode('signIn'); } catch (error) { showError(error); }
+    try { const redirectUrl = inviteToken ? `${window.location.origin}${window.location.pathname}?invite=${encodeURIComponent(inviteToken)}` : window.location.origin; await new SupabaseAuthAdapter(client).requestPasswordReset(email.trim(), redirectUrl); setPendingAction(null); setNotice({ key: 'account.passwordResetSent', error: false }); setAuthMode('signIn'); } catch (error) { showError(error); }
   };
   const updatePassword = async () => {
     if (!client || !validatePassword() || pendingAction) return;
@@ -147,15 +148,20 @@ export function HouseholdSyncPanel({ t, syncStatus, syncNow }: { t: TFunction; s
       setHouseholdId(result.id); setMembers(sessionUserId ? [{ userId: sessionUserId, role: 'owner' }] : []); setHouseholdName(''); setNotice({ key: 'account.householdCreated', error: false });
     } catch (error) { showError(error); }
   };
-  const createInvite = async () => {
-    if (!client || !householdId) return;
-    try { const result = await new SupabaseHouseholdAdapter(client).createInvite(householdId); setCreatedInvite(result); setOutstandingInvites((invites) => [{ id: result.id, expiresAt: result.expiresAt }, ...invites]); setNotice({ key: 'account.inviteCreated', error: false }); } catch (error) { showError(error); }
+  const sendEmailInvite = async () => {
+    if (!client || !householdId || !inviteeEmail.trim() || pendingAction) return;
+    setPendingAction('sendInvite');
+    try {
+      const result = await new SupabaseHouseholdAdapter(client).sendEmailInvite(householdId, inviteeEmail.trim());
+      setOutstandingInvites((invites) => [{ id: result.id, expiresAt: result.expiresAt }, ...invites]);
+      setInviteeEmail(''); setPendingAction(null); setNotice({ key: 'account.emailInviteSent', error: false });
+    } catch (error) { showError(error); }
   };
   const revokeInvite = async (inviteId: string) => {
     if (!client || pendingAction) return;
     if (!window.confirm(t('account.revokeConfirm'))) return;
     setPendingAction(`revoke:${inviteId}`);
-    try { await new SupabaseHouseholdAdapter(client).revokeInvite(inviteId); setCreatedInvite((invite) => invite?.id === inviteId ? null : invite); setOutstandingInvites((invites) => invites.filter((invite) => invite.id !== inviteId)); setPendingAction(null); setNotice({ key: 'account.inviteRevoked', error: false }); } catch (error) { showError(error); }
+    try { await new SupabaseHouseholdAdapter(client).revokeInvite(inviteId); setOutstandingInvites((invites) => invites.filter((invite) => invite.id !== inviteId)); setPendingAction(null); setNotice({ key: 'account.inviteRevoked', error: false }); } catch (error) { showError(error); }
   };
   const removeMember = async (userId: string) => {
     if (!client || !householdId || pendingAction) return;
@@ -165,12 +171,14 @@ export function HouseholdSyncPanel({ t, syncStatus, syncNow }: { t: TFunction; s
   };
   const acceptInvite = async () => {
     if (!client || !inviteToken.trim()) return;
-    try { const id = await new SupabaseHouseholdAdapter(client).acceptInvite(inviteToken.trim()); await saveSyncMetadata({ householdId: id, migrationState: 'pending', cursor: null }); setHouseholdId(id); setInviteToken(''); setNotice({ key: 'account.inviteAccepted', error: false }); } catch (error) { showError(error); }
+    try { const id = await new SupabaseHouseholdAdapter(client).acceptInvite(inviteToken.trim()); await saveSyncMetadata({ householdId: id, migrationState: 'pending', cursor: null }); setHouseholdId(id); setInviteToken(''); window.history.replaceState({}, '', window.location.pathname); setNotice({ key: 'account.inviteAccepted', error: false }); } catch (error) { showError(error); }
   };
-  const copyInvite = async () => {
-    if (!createdInvite) return;
-    try { await navigator.clipboard.writeText(createdInvite.token); setNotice({ key: 'account.inviteCopied', error: false }); } catch { setNotice({ key: 'account.errors.clipboard', error: true }); }
-  };
+  const acceptInviteEffect = useEffectEvent(() => { void acceptInvite(); });
+  useEffect(() => {
+    if (sessionEmail && inviteToken && !householdId && !pendingAction) acceptInviteEffect();
+  }, [sessionEmail, inviteToken, householdId, pendingAction]);
+
+  const currentMember = members.find((member) => member.userId === sessionUserId);
 
   const authForm = authMode === 'reset' ? (
     <div className="household-form">
@@ -196,11 +204,10 @@ export function HouseholdSyncPanel({ t, syncStatus, syncNow }: { t: TFunction; s
     {client && !sessionEmail ? <>{authForm}<p className="panel-copy">{t('account.emailLinkPlatformNote')}</p></> : null}
     {client && sessionEmail ? <>
       <p className="panel-copy">{t('account.signedInAs', { email: sessionEmail })}</p>
-      <button className="ghost-button" type="button" disabled={pendingAction !== null} onClick={() => void signOut()}>{t('account.signOut')}</button>
-      {authMode === 'updatePassword' ? <div className="household-form"><PasswordField label={t('account.newPassword')} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" visible={showPassword} onToggle={() => setShowPassword((visible) => !visible)} toggleLabel={t(showPassword ? 'account.hidePassword' : 'account.showPassword')} /><PasswordField label={t('account.confirmPassword')} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" visible={showConfirmPassword} onToggle={() => setShowConfirmPassword((visible) => !visible)} toggleLabel={t(showConfirmPassword ? 'account.hideConfirmPassword' : 'account.showConfirmPassword')} /><button className="primary-button" type="button" disabled={pendingAction !== null} onClick={() => void updatePassword()}>{t('account.updatePassword')}</button></div> : <button className="ghost-button" type="button" onClick={() => setAuthMode('updatePassword')}>{t('account.setPassword')}</button>}
-      {!householdId ? <div className="household-form"><label>{t('account.householdName')}<input value={householdName} onChange={(event) => setHouseholdName(event.target.value)} /></label><button className="primary-button" type="button" onClick={() => void createHousehold()}>{t('account.createHousehold')}</button></div> : <p className="backup-notice success" role="status">{t('account.householdReady')}</p>}
-      <div className="household-form"><label>{t('account.inviteToken')}<input value={inviteToken} onChange={(event) => setInviteToken(event.target.value)} /></label><button className="secondary-button" type="button" onClick={() => void acceptInvite()}>{t('account.acceptInvite')}</button></div>
-      {householdId ? <div className="household-actions"><button className="secondary-button" type="button" onClick={() => void createInvite()}>{t('account.createInvite')}</button>{syncMetadata?.migrationState === 'pending' || syncMetadata?.migrationState === 'migrating' ? <button className="primary-button" type="button" disabled={pendingAction !== null} onClick={() => void migrate()}>{pendingAction === 'migrate' ? t('account.working') : t('account.migrateInventory')}</button> : null}{syncMetadata?.migrationState === 'complete' ? <p className="panel-copy" role="status">{t(`account.syncStatus.${syncStatus}`)}</p> : null}{createdInvite ? <><code className="invite-token">{createdInvite.token}</code><button className="secondary-button" type="button" onClick={() => void copyInvite()}>{t('account.copyInvite')}</button><button className="ghost-button" type="button" disabled={pendingAction !== null} onClick={() => void revokeInvite(createdInvite.id)}>{pendingAction === `revoke:${createdInvite.id}` ? t('account.working') : t('account.revokeInvite')}</button></> : null}{outstandingInvites.filter((invite) => invite.id !== createdInvite?.id).map((invite) => <div key={invite.id}><span>{t('account.invitationExpires', { date: new Date(invite.expiresAt).toLocaleDateString() })}</span><button className="ghost-button" type="button" disabled={pendingAction !== null} onClick={() => void revokeInvite(invite.id)}>{t('account.revokeInvite')}</button></div>)}{members.map((member) => <div key={member.userId}><span>{t('account.memberLabel', { id: member.userId.slice(0, 6) })} · {member.role}</span>{member.userId !== sessionUserId && member.role === 'member' ? <button className="ghost-button" type="button" disabled={pendingAction !== null} onClick={() => void removeMember(member.userId)}>{t('account.removeMember')}</button> : null}</div>)}</div> : null}
+      <div className="account-actions"><button className="ghost-button" type="button" disabled={pendingAction !== null} onClick={() => void signOut()}>{t('account.signOut')}</button>{authMode === 'updatePassword' ? <button className="ghost-button" type="button" onClick={() => setAuthMode('signIn')}>{t('account.backToSignIn')}</button> : <button className="ghost-button" type="button" onClick={() => setAuthMode('updatePassword')}>{t('account.setPassword')}</button>}</div>
+      {authMode === 'updatePassword' ? <div className="household-form"><PasswordField label={t('account.newPassword')} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" visible={showPassword} onToggle={() => setShowPassword((visible) => !visible)} toggleLabel={t(showPassword ? 'account.hidePassword' : 'account.showPassword')} /><PasswordField label={t('account.confirmPassword')} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" visible={showConfirmPassword} onToggle={() => setShowConfirmPassword((visible) => !visible)} toggleLabel={t(showConfirmPassword ? 'account.hideConfirmPassword' : 'account.showConfirmPassword')} /><button className="primary-button" type="button" disabled={pendingAction !== null} onClick={() => void updatePassword()}>{t('account.updatePassword')}</button></div> : null}
+      {!householdId ? <div className="household-form"><label>{t('account.householdName')}<input value={householdName} onChange={(event) => setHouseholdName(event.target.value)} /></label><button className="primary-button" type="button" onClick={() => void createHousehold()}>{t('account.createHousehold')}</button></div> : <p className="backup-notice success" role="status">{t('account.householdReady')}{syncMetadata?.migrationState === 'complete' ? <><br /><strong>{t(`account.syncStatus.${syncStatus}`)}</strong></> : null}</p>}
+      {householdId ? <div className="household-actions">{currentMember?.role === 'owner' ? <div className="household-form"><label>{t('account.inviteeEmail')}<input value={inviteeEmail} onChange={(event) => setInviteeEmail(event.target.value)} type="email" autoComplete="email" /></label><button className="primary-button" type="button" disabled={pendingAction !== null} onClick={() => void sendEmailInvite()}>{pendingAction === 'sendInvite' ? t('account.working') : t('account.sendEmailInvite')}</button></div> : null}{syncMetadata?.migrationState === 'pending' || syncMetadata?.migrationState === 'migrating' ? <button className="primary-button" type="button" disabled={pendingAction !== null} onClick={() => void migrate()}>{pendingAction === 'migrate' ? t('account.working') : t('account.migrateInventory')}</button> : null}{outstandingInvites.map((invite) => <div key={invite.id}><span>{t('account.invitationExpires', { date: new Date(invite.expiresAt).toLocaleDateString() })}</span><button className="ghost-button" type="button" disabled={pendingAction !== null} onClick={() => void revokeInvite(invite.id)}>{t('account.revokeInvite')}</button></div>)}{members.map((member) => <div className="member-row" key={member.userId}><span className="member-summary"><span>{member.userId.slice(0, 6)}{member.userId === sessionUserId ? ` ${t('account.currentUser')}` : ''}</span><span>{member.role}</span></span>{currentMember?.role === 'owner' && member.userId !== sessionUserId && member.role === 'member' ? <button className="ghost-button member-remove" type="button" disabled={pendingAction !== null} onClick={() => void removeMember(member.userId)}>{t('account.removeMember')}</button> : null}</div>)}</div> : null}
     </> : null}
     {notice ? <p className={notice.error ? 'backup-notice error' : 'backup-notice success'} role={notice.error ? 'alert' : 'status'}>{t(notice.key)}</p> : null}
   </section>;

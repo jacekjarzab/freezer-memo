@@ -7,6 +7,7 @@ export type HouseholdActionError = 'forbidden' | 'invite_invalid' | 'unavailable
 
 export interface HouseholdPort {
   createHousehold(name: string): Promise<{ id: string; name: string }>;
+  sendEmailInvite(householdId: string, inviteeEmail: string): Promise<{ id: string; expiresAt: string }>;
   createInvite(householdId: string): Promise<{ id: string; token: string; expiresAt: string }>;
   discoverHousehold(): Promise<{ id: string; name: string } | null>;
   listOutstandingInvites(householdId: string): Promise<Array<{ id: string; expiresAt: string }>>;
@@ -147,6 +148,16 @@ export class SupabaseHouseholdAdapter implements HouseholdPort {
     if (error) throwAdapterError(error);
     const row = unwrapRpcRow(data);
     return { id: String(row.id), name: String(row.name) };
+  }
+  async sendEmailInvite(householdId: string, inviteeEmail: string) {
+    const { data, error } = await this.client.functions.invoke('send-household-invite', {
+      body: { householdId, inviteeEmail },
+    });
+    if (error) throwAdapterError(error);
+    if (!data || typeof data.inviteId !== 'string' || typeof data.expiresAt !== 'string') {
+      throw new SupabaseAdapterError('invalid', 'Supabase returned an invalid email invite');
+    }
+    return { id: data.inviteId, expiresAt: data.expiresAt };
   }
   async createInvite(householdId: string) {
     const { data, error } = await this.client.rpc('create_household_invite', { target_household_id: householdId });

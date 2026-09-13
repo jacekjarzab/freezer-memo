@@ -118,4 +118,4 @@ Status legend:
 - [ ] Bulk clear history
 - [ ] Age indicators / freezer duration
 - [ ] Recipe or usage suggestions
-- [-] Shared household sync (inventory-only MVP; email/password auth with confirmation/recovery emails, Supabase Free tier, offline outbox sync, App-level foreground orchestration, and hosted schema/RLS/member-removal validation complete; pending edge-case recovery, production rollout, and two-device offline/reconnect validation)
+- [-] Shared household sync (inventory-only MVP; email/password auth with confirmation/recovery emails, recipient-bound automatic email invites, Supabase Free tier, offline outbox sync, App-level foreground orchestration, and hosted schema/RLS/member-removal validation complete; pending edge-case recovery, production rollout, and two-device offline/reconnect validation)
