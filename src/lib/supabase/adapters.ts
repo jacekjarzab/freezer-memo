@@ -11,7 +11,7 @@ export interface HouseholdPort {
   createInvite(householdId: string): Promise<{ id: string; token: string; expiresAt: string }>;
   discoverHousehold(): Promise<{ id: string; name: string } | null>;
   listOutstandingInvites(householdId: string): Promise<Array<{ id: string; expiresAt: string }>>;
-  listMembers(householdId: string): Promise<Array<{ userId: string; role: 'owner' | 'member' }>>;
+  listMembers(householdId: string): Promise<Array<{ userId: string; role: 'owner' | 'member'; email: string | null }>>;
   revokeInvite(inviteId: string): Promise<void>;
   removeMember(householdId: string, userId: string): Promise<void>;
   acceptInvite(token: string): Promise<string>;
@@ -182,7 +182,7 @@ export class SupabaseHouseholdAdapter implements HouseholdPort {
       .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false });
     if (error) throwAdapterError(error);
-    return (data ?? []).map((row) => {
+    return (data ?? []).map((row: RemoteRow) => {
       const invite = unwrapRpcRow(row);
       if (typeof invite.id !== 'string' || typeof invite.expires_at !== 'string') {
         throw new SupabaseAdapterError('invalid', 'Supabase returned an invalid invite');
@@ -195,14 +195,14 @@ export class SupabaseHouseholdAdapter implements HouseholdPort {
     if (error) throwAdapterError(error);
   }
   async listMembers(householdId: string) {
-    const { data, error } = await this.client.from('household_members').select('user_id, role').eq('household_id', householdId);
+    const { data, error } = await this.client.rpc('list_household_members', { target_household_id: householdId });
     if (error) throwAdapterError(error);
-    return (data ?? []).map((row) => {
+    return (data ?? []).map((row: RemoteRow) => {
       const member = unwrapRpcRow(row);
-      if (typeof member.user_id !== 'string' || (member.role !== 'owner' && member.role !== 'member')) {
+      if (typeof member.user_id !== 'string' || (member.role !== 'owner' && member.role !== 'member') || (member.email !== null && typeof member.email !== 'string')) {
         throw new SupabaseAdapterError('invalid', 'Supabase returned an invalid household member');
       }
-      return { userId: member.user_id, role: member.role as 'owner' | 'member' };
+      return { userId: member.user_id, role: member.role as 'owner' | 'member', email: member.email as string | null };
     });
   }
   async removeMember(householdId: string, userId: string) {
