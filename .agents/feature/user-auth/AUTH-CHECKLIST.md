@@ -43,7 +43,7 @@ Replace repeated magic-link sign-in with an in-app email and password account fl
 - [x] Keep localhost redirect URLs for development.
 - [x] Confirm Email provider and email confirmation are enabled.
 - [x] Configure production SMTP or verify the project email service limits.
-- [ ] Verify confirmation and recovery callbacks in browser and installed PWA contexts.
+- [x] Verify confirmation and recovery callbacks in browser and installed PWA contexts.
 
 ### Localization and Documentation
 
@@ -59,7 +59,7 @@ Replace repeated magic-link sign-in with an in-app email and password account fl
 - [x] Run `npm test`.
 - [x] Run `npm run lint`.
 - [x] Run `npm run build`.
-- [ ] Perform production smoke testing on browser and installed PWA.
+- [x] Perform production smoke testing on browser and installed PWA.
 
 ## Known Platform Limitation
 
