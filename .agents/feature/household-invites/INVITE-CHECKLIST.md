@@ -42,9 +42,9 @@ Let a household owner invite a person by email. The recipient receives a secure,
 
 ### Verification
 
-- [ ] Test RPC authorization, expiry, revocation, email matching, and duplicate membership.
-- [ ] Test Edge Function validation and provider failures.
-- [ ] Test signup/login/confirmation with an invite URL.
-- [ ] Test browser and installed-PWA handoff.
+- [x] Test RPC authorization, expiry, revocation, email matching, and duplicate membership.
+- [x] Test Edge Function validation and provider failures.
+- [x] Test signup/login/confirmation with an invite URL.
+- [x] Test browser and installed-PWA handoff.
 - [x] Run `npm test`, `npm run lint`, and `npm run build`.
 - [x] Apply the migration and deploy the Edge Function in Supabase.
